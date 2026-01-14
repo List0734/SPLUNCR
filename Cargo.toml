@@ -1,6 +1,10 @@
 [package]
 name = "SPLUNCR"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
+crossbeam = "0.8.4"
+kiss3d = "0.37"
+nalgebra = "0.34.1"
+serde = { version = "1.0.228", features = ["derive"] }

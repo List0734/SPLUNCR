@@ -1,6 +1,4 @@
-use na::Isometry3;
-
-use crate::core::physics::kinematics::Pose;
+use crate::core::{physics::kinematics::Pose, telemetry};
 
 mod thruster;
 pub use thruster::{
@@ -8,21 +6,23 @@ pub use thruster::{
 };
 
 pub struct Propulsion {
+    telemetry: telemetry::Publisher,
     pose: Pose,
     thrusters: [Thruster; 8],
 }
 
-/*
 impl Propulsion {
-    pub fn new(thuster_poses: [Pose; 8]) -> self {
+    pub fn new(telemetry: telemetry::Publisher, thruster_poses: [Pose; 8]) -> Self {
+        let thrusters = std::array::from_fn(|i| Thruster::new(thruster_poses[i]));
+
         Self {
+            telemetry,
             pose: Pose::identity(),
-            thrusters: 
+            thrusters,
         }
     }
-
-    pub fn get_thruster_positions(&self) -> [Pose; 8] {
-        self.thrusters.iter().map(|t| t.pose).collect();
+    
+    pub fn thruster_positions(&self) -> [Pose; 8] {
+        std::array::from_fn(|i| self.thrusters[i].pose())
     }
 }
-    */

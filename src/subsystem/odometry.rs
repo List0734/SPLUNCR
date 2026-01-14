@@ -1,6 +1,6 @@
 use na::Vector3;
 
-use crate::core::physics::kinematics::{Pose, Twist};
+use crate::core::{physics::kinematics::{Pose, Twist}, telemetry};
 
 pub struct Odometry {
     pose: Pose,

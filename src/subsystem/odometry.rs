@@ -1,15 +1,21 @@
 use na::Vector3;
 
-use crate::core::{physics::kinematics::{Pose, Twist}, telemetry};
+use crate::{core::{physics::kinematics::{Pose, Twist}, telemetry}, define_subsystem};
+use crate::subsystem::{Base, Subsystem};
 
-pub struct Odometry {
-    pose: Pose,
-    twist: Twist,
-}
+define_subsystem!(
+    Odometry,
+    "odometry",
+    {
+        pose: Pose,
+        twist: Twist,
+    }
+);
 
 impl Odometry {
-    pub fn new() -> Self {
+    pub fn init(base: Base) -> Self {
         Self {
+            base,
             pose: Pose::identity(),
             twist: Twist::zero(),
         }

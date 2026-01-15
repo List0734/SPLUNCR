@@ -1,6 +1,5 @@
 mod value;
 use crossbeam::channel::{Receiver, Sender, unbounded};
-use na::base;
 pub use value::Value;
 
 mod event;

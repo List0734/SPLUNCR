@@ -1,8 +1,11 @@
 use kiss3d::{camera::ArcBall, light::Light, window::Window};
-use na::{Isometry3, Point3, UnitQuaternion, Vector3};
+use nalgebra::{Isometry3, Point3, UnitQuaternion, Vector3};
 use std::{path::Path, thread};
 
-use crate::{core::renderer::WindowExt, subsystem::Odometry, system::System};
+use shared::renderer::WindowExt;
+use shared::robot::Subsystem;
+
+use robot::Robot;
 
 pub struct Simulation {
     window: Window,
@@ -18,15 +21,15 @@ impl Simulation {
         }
     }
 
-    pub async fn start(&mut self, system: System) {
+    pub async fn start(&mut self, robot: Robot) {
         let mut thruster_arrows: Vec<kiss3d::scene::SceneNode> = Vec::new();
 
-        for pose in system.propulsion.lock().unwrap().thruster_positions() {
+        for pose in robot.propulsion.lock().unwrap().thruster_positions() {
             let arrow = self.window.add_vector(pose, 1.0, 2.0);
             thruster_arrows.push(arrow);
         }
 
-        let mut odometry_pose_arrow = self.window.add_vector(*system.odometry.lock().unwrap().pose(), 1.0, 4.0);
+        let mut odometry_pose_arrow = self.window.add_vector(*robot.odometry.lock().unwrap().pose(), 1.0, 4.0);
 
         let mut mesh = self.window.add_obj(Path::new("test.obj"), Path::new(""), Vector3::new(0.5, 0.5, 0.5));
 
@@ -38,12 +41,12 @@ impl Simulation {
         let mut camera = ArcBall::new(eye, at);
         camera.set_up_axis(Vector3::z());
 
-        system.odometry.lock().unwrap().apply_linear_acceleration(Vector3::new(2.0, 2.0, 0.0), 0.1);
-        system.odometry.lock().unwrap().update_angular_velocity(Vector3::new(0.5, 0.5, 0.0));
+        robot.odometry.lock().unwrap().apply_linear_acceleration(Vector3::new(2.0, 2.0, 0.0), 0.1);
+        robot.odometry.lock().unwrap().update_angular_velocity(Vector3::new(0.5, 0.5, 0.0));
 
-        system.propulsion.lock().unwrap().test_telemetry();
+        robot.propulsion.lock().unwrap().test_telemetry();
 
-        let rx = system.telemetry.receiver().clone();
+        let rx = robot.telemetry.receiver().clone();
 
         thread::spawn(move || {
             loop {
@@ -64,10 +67,10 @@ impl Simulation {
 
         while self.window.render_with_camera(&mut camera).await {
 
-            let odometry_pose = system.odometry.lock().unwrap().pose().clone();
+            let odometry_pose = robot.odometry.lock().unwrap().pose().clone();
 
             // Update Thruster Arrows
-            let poses = system.propulsion.lock().unwrap().thruster_positions();
+            let poses = robot.propulsion.lock().unwrap().thruster_positions();
 
             for (arrow, pose) in thruster_arrows.iter_mut().zip(poses.iter()) {
                 let global_pose = odometry_pose * pose;
@@ -83,7 +86,7 @@ impl Simulation {
             let new_pose = odometry_pose * Isometry3::from_parts(Vector3::zeros().into(), rot);
             mesh.set_local_transformation(new_pose);
 
-            system.odometry.lock().unwrap().integrate(0.01);
+            robot.odometry.lock().unwrap().integrate(0.01);
 
         }
     }

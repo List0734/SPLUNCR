@@ -1,7 +1,7 @@
 use kiss3d::{camera::ArcBall, window::Window};
 use kiss3d::scene::SceneNode;
 use kiss3d::light::Light;
-use na::{Isometry3, UnitQuaternion, Vector3};
+use nalgebra::{Isometry3, UnitQuaternion, Vector3};
 use nalgebra::{Point3, Translation3};
 
 pub trait Renderable {

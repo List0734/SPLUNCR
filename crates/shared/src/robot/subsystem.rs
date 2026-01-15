@@ -1,37 +1,12 @@
-mod odometry;
+use crate::telemetry;
 
-pub use odometry::Odometry;
-
-mod propulsion;
-pub use propulsion::Propulsion;
-
-use crate::core::telemetry::{self, Telemetry};
+mod base;
+pub use base::Base; 
 
 pub trait Subsystem: Send + Sync {
     const NAME: &'static str;
 
     fn telemetry(&self) -> &telemetry::Publisher;
-}
-
-pub struct Base {
-    name: &'static str,
-    telemetry: telemetry::Publisher,
-}
-
-impl Base {
-    pub fn new(telemetry: &Telemetry) -> Self {
-        Self {
-            name: "",
-            telemetry: telemetry.create_publisher("subsystem"),
-        }
-    }
-
-    fn bind<S: Subsystem>(&self) -> Self {
-        Self {
-            name: S::NAME,
-            telemetry: self.telemetry.child(S::NAME),
-        }
-    }
 }
 
 // Macro to define a subsystem:
@@ -53,7 +28,7 @@ macro_rules! define_subsystem {
             }
 
             pub fn telemetry(&self) -> &telemetry::Publisher {
-                &self.base.telemetry
+                &self.base.telemetry()
             }
         }
 
@@ -62,7 +37,7 @@ macro_rules! define_subsystem {
             const NAME: &'static str = $subsystem_name;
 
             fn telemetry(&self) -> &telemetry::Publisher {
-                &self.base.telemetry
+                &self.base.telemetry()
             }
         }
     };

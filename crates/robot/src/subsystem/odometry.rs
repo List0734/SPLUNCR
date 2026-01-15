@@ -1,7 +1,9 @@
-use na::Vector3;
+use nalgebra::Vector3;
 
-use crate::{core::{physics::kinematics::{Pose, Twist}, telemetry}, define_subsystem};
-use crate::subsystem::{Base, Subsystem};
+use shared::physics::kinematics::{Pose, Twist};
+use shared::robot::subsystem::{Base, Subsystem};
+use shared::define_subsystem;
+use shared::telemetry;
 
 define_subsystem!(
     Odometry,

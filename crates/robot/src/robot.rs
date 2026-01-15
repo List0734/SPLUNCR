@@ -1,18 +1,19 @@
 use std::sync::{Arc, Mutex};
 
-use na::{Rotation3, UnitQuaternion, Vector3};
+use nalgebra::{Rotation3, UnitQuaternion, Vector3};
 
-use crate::core::telemetry::Telemetry;
-use crate::subsystem::{self, Odometry, Propulsion};
-use crate::core::physics::kinematics::Pose;
+use shared::telemetry::Telemetry;
+use shared::physics::kinematics::Pose;
+use shared::robot::subsystem;
+use crate::subsystem::{Odometry, Propulsion};
 
-pub struct System {
+pub struct Robot {
     pub telemetry: Telemetry,
     pub propulsion: Arc<Mutex<Propulsion>>,
     pub odometry: Arc<Mutex<Odometry>>,
 }
 
-impl System {
+impl Robot {
     pub fn new() -> Self {
         let telemetry = Telemetry::new();
 

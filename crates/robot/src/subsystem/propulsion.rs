@@ -1,7 +1,11 @@
-use crate::{core::{physics::kinematics::Pose, telemetry}, define_subsystem, subsystem::{Base, Subsystem}};
+use shared::physics::kinematics::Pose;
+use shared::define_subsystem;
+use shared::robot::subsystem::{Subsystem, Base};
+use shared::telemetry;
+
 
 mod thruster;
-use na::{Vector3, UnitQuaternion};
+use nalgebra::{Vector3, UnitQuaternion};
 pub use thruster::{
     Thruster,
 };

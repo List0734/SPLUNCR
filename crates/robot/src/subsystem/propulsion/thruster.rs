@@ -1,4 +1,4 @@
-use crate::core::physics::kinematics::Pose;
+use shared::physics::kinematics::Pose;
 
 pub struct Thruster {
     pose: Pose,

@@ -1,3 +1,4 @@
+use nalgebra::Vector3;
 use shared::physics::kinematics::Pose;
 
 pub struct Thruster {
@@ -19,6 +20,10 @@ impl Thruster {
 
     pub fn pose(&self) -> Pose {
         self.pose
+    }
+
+    pub fn direction(&self) -> Vector3<f32> {
+        self.pose.rotation * Vector3::z()
     }
 
     pub fn command_thrust(mut self, thrust: f32) {

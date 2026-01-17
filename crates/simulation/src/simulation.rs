@@ -1,5 +1,6 @@
 use kiss3d::{camera::ArcBall, light::Light, window::Window};
 use nalgebra::{Isometry3, Point3, UnitQuaternion, Vector3};
+use shared::physics::kinematics::Pose;
 use std::{path::Path, thread};
 
 use shared::renderer::WindowExt;
@@ -24,12 +25,17 @@ impl Simulation {
     pub async fn start(&mut self, robot: Robot) {
         let mut thruster_arrows: Vec<kiss3d::scene::SceneNode> = Vec::new();
 
+        /*
         for pose in robot.propulsion.lock().unwrap().thruster_positions() {
-            let arrow = self.window.add_vector(pose, 1.0, 2.0);
+            //let arrow = self.window.add_vector(pose, 1.0, 2.0);
+            let arrow = self.window.add_cone(0.5, 1.0);
             thruster_arrows.push(arrow);
         }
+        */
 
         let mut odometry_pose_arrow = self.window.add_vector(*robot.odometry.lock().unwrap().pose(), 1.0, 4.0);
+
+        let mut requested_force_arrow = self.window.add_vector(Pose::identity(), 1.0, 5.0);
 
         let mut mesh = self.window.add_obj(Path::new("test.obj"), Path::new(""), Vector3::new(0.5, 0.5, 0.5));
 
@@ -41,8 +47,8 @@ impl Simulation {
         let mut camera = ArcBall::new(eye, at);
         camera.set_up_axis(Vector3::z());
 
-        robot.odometry.lock().unwrap().apply_linear_acceleration(Vector3::new(2.0, 2.0, 0.0), 0.1);
-        robot.odometry.lock().unwrap().update_angular_velocity(Vector3::new(0.5, 0.5, 0.0));
+        //robot.odometry.lock().unwrap().apply_linear_acceleration(Vector3::new(2.0, 2.0, 0.0), 0.1);
+        //robot.odometry.lock().unwrap().update_angular_velocity(Vector3::new(0.5, 0.5, 0.0));
 
         robot.propulsion.lock().unwrap().test_telemetry();
 
@@ -72,11 +78,47 @@ impl Simulation {
             // Update Thruster Arrows
             let poses = robot.propulsion.lock().unwrap().thruster_positions();
 
-            for (arrow, pose) in thruster_arrows.iter_mut().zip(poses.iter()) {
+            let force = Vector3::new(1.0, 0.0, 0.0);
+
+            // Normalize it to get just the direction
+            let direction = force.normalize();
+
+            // Define what "forward" means for your object (commonly the Z-axis or Y-axis)
+            let reference = Vector3::z(); // or Vector3::y(), depending on your model
+
+            // Create a rotation from the reference direction to your force direction
+            let rotation = UnitQuaternion::rotation_between(&reference, &direction)
+                .unwrap_or(UnitQuaternion::identity());
+            
+            requested_force_arrow.set_local_rotation(rotation);
+
+            let forces = robot.propulsion.lock().unwrap().compute_thruster_forces(Vector3::new(1.0, 0.0, 0.0));
+
+            // Remove all old arrows
+            for mut arrow in thruster_arrows.drain(..) {
+                arrow.unlink();
+            }
+
+            // Add new arrows
+            for (i, pose) in robot.propulsion.lock().unwrap().thruster_positions().iter().enumerate() {
+                let new_pose = pose.clone();
+                let arrow = self.window.add_vector(new_pose, forces[i] * 4.0, 2.0);
+
+                thruster_arrows.push(arrow);
+            }
+
+            /*
+            for (i, (arrow, pose)) in thruster_arrows.iter_mut().zip(poses.iter()).enumerate() {
+                let rotation = UnitQuaternion::from_euler_angles(-std::f32::consts::FRAC_PI_2, 0.0, 0.0);
+                arrow.set_local_rotation(rotation);
+
                 let global_pose = odometry_pose * pose;
                 arrow.set_local_translation(global_pose.translation);
                 arrow.set_local_rotation(global_pose.rotation);
+
+                arrow.set_local_scale(forces[i], forces[i], forces[i]);
             }
+            */
 
             // Update Odometry Arrow
             odometry_pose_arrow.set_local_transformation(odometry_pose);
@@ -87,6 +129,7 @@ impl Simulation {
             mesh.set_local_transformation(new_pose);
 
             robot.odometry.lock().unwrap().integrate(0.01);
+
 
         }
     }

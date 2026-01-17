@@ -40,11 +40,16 @@ impl WindowExt for Window {
 
         let mut parent = self.add_group();
 
+            let align_y_to_z =
+        UnitQuaternion::from_axis_angle(&Vector3::x_axis(), std::f32::consts::FRAC_PI_2);
+
         let mut shaft = parent.add_cylinder(shaft_radius, shaft_length);
-        shaft.append_translation(&Translation3::new(0.0, shaft_length / 2.0, 0.0));
+        shaft.set_local_rotation(align_y_to_z);
+        shaft.set_local_translation(Translation3::new(0.0, 0.0, shaft_length / 2.0));
 
         let mut head = parent.add_cone(head_radius, head_length);
-        head.append_translation(&Translation3::new(0.0, shaft_length + head_length / 2.0, 0.0));
+        head.set_local_rotation(align_y_to_z);
+        head.set_local_translation(Translation3::new(0.0, 0.0, shaft_length + head_length / 2.0));
 
         parent.set_local_translation(iso.translation);
         parent.set_local_rotation(iso.rotation);

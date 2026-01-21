@@ -1,6 +1,5 @@
+pub mod control;
+pub mod data;
+
 pub mod robot;
 pub use robot::Robot;
-
-pub mod subsystem;
-
-pub mod telemetry;

@@ -2,6 +2,7 @@ use nalgebra::{Isometry3, Vector3};
 
 pub type Pose = Isometry3<f32>;
 
+#[derive(Clone, Copy, Debug)]
 pub struct Twist {
     pub linear: Vector3<f32>,
     pub angular: Vector3<f32>,

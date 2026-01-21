@@ -1,35 +1,26 @@
-use std::sync::{Arc, Mutex};
+use nalgebra::Vector3;
 
-use nalgebra::{Rotation3, UnitQuaternion, Vector3};
-
-use shared::telemetry::Telemetry;
-use shared::physics::kinematics::Pose;
-use shared::robot::subsystem;
-use crate::subsystem::{Odometry, Propulsion};
+use crate::{control::estimator::Estimators, data::transport::telemetry::{self, Telemetry}};
 
 pub struct Robot {
-    pub telemetry: Telemetry,
-    pub propulsion: Arc<Mutex<Propulsion>>,
-    pub odometry: Arc<Mutex<Odometry>>,
+    estimators: Estimators,
+    telemetry: Telemetry,
 }
 
 impl Robot {
     pub fn new() -> Self {
         let telemetry = Telemetry::new();
 
-        let subsystem_publisher = telemetry.create_publisher("subsystem");
-
-        let subsystem_base = subsystem::Base::new(&telemetry);
-
-        let propulsion = Arc::new(Mutex::new(Propulsion::new(&subsystem_base)));
-
-        let odometry = Arc::new(Mutex::new(Odometry::new(&subsystem_base)));
-        
         Self {
+            estimators: Estimators::new(telemetry.publisher()),
             telemetry,
-            propulsion,
-            odometry,
         }
+    }
+
+    pub fn run(&mut self) {
+        //self.estimators.odometry.apply_linear_acceleration(Vector3::new(1.0, 0.0, 0.0), 0.1);
+        self.estimators.odometry.update_angular_velocity(Vector3::new(1.0, 1.0, 0.0));
+        self.estimators.odometry.update(0.01);
     }
     
     pub fn telemetry(&self) -> &Telemetry {

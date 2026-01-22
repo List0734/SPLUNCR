@@ -2,7 +2,7 @@ use std::{sync::{Arc, Mutex}, thread::{self, sleep}, time::Duration};
 
 use kiss3d;
 
-use robot::{Robot, data::{transport::telemetry::Message, condition::{RobotCondition, StateBundle}}};
+use robot::{Robot, data::{condition::{ConfigBundle, RobotCondition, StateBundle}, transport::telemetry::Message}};
 use station::Station;
 
 //mod simulation;
@@ -14,7 +14,9 @@ async fn main() {
 
     let mut robot = Arc::new(Mutex::new(Robot::new()));
 
-    let condition = Arc::new(Mutex::new(RobotCondition::default()));
+    let config = ConfigBundle::load("../robot/config.toml");
+
+    let condition = Arc::new(Mutex::new(RobotCondition::default(config)));
 
     let mut station = Station::new(condition);
 

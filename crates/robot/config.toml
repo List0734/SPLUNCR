@@ -1,0 +1,12 @@
+[subsystem.propulsion]
+test = 1.0
+
+[regulator.propulsion.velocity.linear]
+surge  = { kp = 1.0, ki = 0.0, kd = 0.1 }
+sway   = { kp = 1.0, ki = 0.0, kd = 0.1 }
+heave  = { kp = 2.0, ki = 0.0, kd = 0.2 }
+
+[regulator.propulsion.velocity.angular]
+roll  = { kp = 0.5, ki = 0.0, kd = 0.05 }
+pitch = { kp = 0.5, ki = 0.0, kd = 0.05 }
+yaw   = { kp = 0.8, ki = 0.0, kd = 0.1 }

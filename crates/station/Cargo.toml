@@ -1,0 +1,11 @@
+[package]
+name = "station"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+robot = { path = "../robot" }
+egui = "0.32"
+kiss3d = { version = "0.37", features = ["egui"] }
+nalgebra = "0.34.1"
+crossbeam = "0.8.4"

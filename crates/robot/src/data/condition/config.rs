@@ -1,12 +1,15 @@
-mod subsystem;
+pub mod subsystem;
+pub mod regulator;
 use std::{fs, io};
 
 use serde::Deserialize;
 pub use subsystem::SubsystemConfig;
+pub use regulator::RegulatorConfig;
 
 #[derive(Clone, Copy, Debug, Deserialize)]
 pub struct ConfigBundle {
     pub subsystem: SubsystemConfig,
+    pub regulator: RegulatorConfig,
 }
 
 impl ConfigBundle {
@@ -39,4 +42,8 @@ impl From<toml::de::Error> for ConfigError {
     fn from(e: toml::de::Error) -> Self {
         ConfigError::Parse(e)
     }
+}
+
+pub trait Config<C> {
+    fn update_config(&mut self, config: C);
 }

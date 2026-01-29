@@ -1,8 +1,9 @@
-mod propulsion;
-pub use propulsion::PropulsionConfig;
 use serde::Deserialize;
 
+pub mod propulsion;
+pub use propulsion::PropulsionConfig;
+
 #[derive(Clone, Copy, Debug, Deserialize)]
-pub struct SubsystemConfig {
+pub struct RegulatorConfig {
     pub propulsion: PropulsionConfig,
 }

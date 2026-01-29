@@ -1,6 +1,6 @@
 use nalgebra::Vector3;
 
-use shared::physics::kinematics::Pose;
+use shared::physics::kinematics::{Pose, Twist};
 use crate::data::transport::telemetry::{Publisher, Message};
 
 use crate::data::condition::state::OdometryState;
@@ -22,10 +22,10 @@ impl Odometry {
         }
     }
 
-    pub fn update(&mut self, dt: f32) {
-        self.integrate(dt);
-        
+    pub fn update(&mut self, dt: f32) -> Twist {
+        self.integrate(dt); 
         self.telemetry.publish(Message::OdometryState(self.state));
+        self.state.twist
     }
 
     pub fn integrate(&mut self, dt: f32) { 
@@ -35,6 +35,10 @@ impl Odometry {
         );
 
         self.state.pose *= delta;
+    }
+
+    pub fn twist(&self) -> Twist {
+        self.state.twist
     }
 
     pub fn apply_linear_acceleration(&mut self, acceleration: Vector3<f32>, dt: f32) {

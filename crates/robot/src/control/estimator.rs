@@ -1,7 +1,7 @@
 mod odometry;
 pub use odometry::Odometry;
 
-use crate::data::transport::telemetry::{self, Publisher};
+use crate::data::transport::telemetry::Publisher;
 
 pub struct Estimators {
     pub odometry: Odometry,

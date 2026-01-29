@@ -1,4 +1,4 @@
-use crossbeam::channel::{unbounded, Sender, Receiver};
+use crossbeam::channel::{unbounded, Receiver};
 
 mod message;
 pub use message::Message;

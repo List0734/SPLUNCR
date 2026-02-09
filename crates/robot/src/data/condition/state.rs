@@ -1,15 +1,15 @@
-mod odometry;
-pub use odometry::OdometryState;
+pub mod estimator;
+pub use estimator::EstimatorBundle;
 
 #[derive(Clone, Copy, Debug)]
 pub struct StateBundle {
-    pub odometry: OdometryState,
+    pub estimator: EstimatorBundle,
 }
 
 impl StateBundle {
     pub fn default() -> Self {
         Self {
-            odometry: OdometryState::default(),
+            estimator: EstimatorBundle::default(),
         }
     }
 }

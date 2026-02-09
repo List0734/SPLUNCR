@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 robot = { path = "../robot" }
+shared = { path = "../shared" }
 egui = "0.32"
 kiss3d = { version = "0.37", features = ["egui"] }
 nalgebra = "0.34.1"

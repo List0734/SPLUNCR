@@ -1,16 +1,16 @@
 mod velocity;
-pub use velocity::Velocity;
+pub use velocity::VelocityRegulator;
 
 use crate::data::condition::config::regulator::PropulsionConfig;
 
-pub struct Propulsion {
-    pub velocity: Velocity,
+pub struct PropulsionRegulator {
+    pub velocity: VelocityRegulator,
 }
 
-impl Propulsion {
+impl PropulsionRegulator {
     pub fn new(config: PropulsionConfig) -> Self {
         Self {
-            velocity: Velocity::new(config.velocity),
+            velocity: VelocityRegulator::new(config.velocity),
         }
     }
 }

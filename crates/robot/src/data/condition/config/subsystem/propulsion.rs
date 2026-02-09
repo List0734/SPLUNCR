@@ -1,7 +1,11 @@
 use serde::Deserialize;
 
-#[derive(Clone, Copy, Debug, Deserialize)]
+mod thruster;
+pub use thruster::ThrusterConfig;
+
+use crate::platform::subsystem::propulsion::NUM_THRUSTERS;
+
+#[derive(Clone, Debug, Deserialize)]
 pub struct PropulsionConfig {
-//    thrusters: 
-    pub test: f32,
+    pub thrusters: [ThrusterConfig; NUM_THRUSTERS]
 }

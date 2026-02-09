@@ -31,7 +31,7 @@ impl StationaryScene {
     }
 
     pub fn update_ui(&mut self, ui: &mut Ui, robot: &RobotCondition) {
-        let rotation: UnitQuaternion<f32> = robot.state.odometry.pose.rotation;
+        let rotation: UnitQuaternion<f64> = robot.state.estimator.odometry.pose.rotation;
 
         let (roll, pitch, yaw) = rotation.euler_angles();
 

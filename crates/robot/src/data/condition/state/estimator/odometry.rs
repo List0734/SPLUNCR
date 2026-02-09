@@ -1,12 +1,14 @@
 use shared::physics::kinematics::{Pose, Twist};
 
+use crate::platform::Fp;
+
 #[derive(Clone, Copy, Debug)]
-pub struct OdometryState {
-    pub pose: Pose,
-    pub twist: Twist,
+pub struct OdometryEstimatorState {
+    pub pose: Pose<Fp>,
+    pub twist: Twist<Fp>,
 }
 
-impl OdometryState {
+impl OdometryEstimatorState {
     pub fn default() -> Self {
         Self {
             pose: Pose::identity(),

@@ -1,13 +1,16 @@
-use nalgebra::SVector;
+use nalgebra::{RealField, SVector};
 
 use crate::control::controllers::{PID, pid::PIDConfig};
 
-pub struct PIDVec<const N: usize> {
-    axes: [PID; N],
+pub struct PIDVec<S, const N: usize> {
+    axes: [PID<S>; N],
 }
 
-impl<const N: usize> PIDVec<N> {
-    pub fn new(configs: [PIDConfig; N]) -> Self {
+impl<S, const N: usize> PIDVec<S, N> 
+where
+    S: RealField + Copy,
+{
+    pub fn new(configs: [PIDConfig<S>; N]) -> Self {
         Self {
             axes: configs.map(PID::from_config),
         }
@@ -15,10 +18,10 @@ impl<const N: usize> PIDVec<N> {
 
     pub fn update(
         &mut self,
-        setpoint: &SVector<f32, N>,
-        measured: &SVector<f32, N>,
-        dt: f32,
-    ) -> SVector<f32, N> {
+        setpoint: &SVector<S, N>,
+        measured: &SVector<S, N>,
+        dt: S,
+    ) -> SVector<S, N> {
         SVector::from_fn(|i, _| self.axes[i].update(setpoint[i], measured[i], dt))
     }
 
@@ -28,16 +31,16 @@ impl<const N: usize> PIDVec<N> {
         }
     }
 
-    pub fn set_gains(&mut self, configs: &[PIDConfig; N]) {
+    pub fn set_gains(&mut self, configs: &[PIDConfig<S>; N]) {
         for (pid, config) in self.axes.iter_mut().zip(configs.iter()) {
             pid.set_gains(config.kp, config.ki, config.kd);
         }
     }
 
-    pub fn errors(&self) -> SVector<f32, N> {
+    pub fn errors(&self) -> SVector<S, N> {
         SVector::from_fn(|i, _| self.axes[i].error())
     }
 }
 
-pub type PID3 = PIDVec<3>;
-pub type PID6 = PIDVec<6>;
+pub type PID3<S> = PIDVec<S, 3>;
+pub type PID6<S> = PIDVec<S, 6>;

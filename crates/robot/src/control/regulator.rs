@@ -1,16 +1,16 @@
 pub mod propulsion;
-pub use propulsion::Propulsion;
+pub use propulsion::PropulsionRegulator;
 
 use crate::data::condition::config::RegulatorConfig;
 
 pub struct Regulators {
-    pub propulsion: Propulsion,
+    pub propulsion: PropulsionRegulator,
 }
 
 impl Regulators {
     pub fn new(config: RegulatorConfig) -> Self {
         Self {
-            propulsion: Propulsion::new(config.propulsion),
+            propulsion: PropulsionRegulator::new(config.propulsion),
         }
     }
 }

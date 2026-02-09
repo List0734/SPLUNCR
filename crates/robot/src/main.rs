@@ -12,7 +12,7 @@ fn main() {
         move || {
             while let Some(msg) = telemetry.receive() {
                 match msg {
-                    telemetry::Message::OdometryState(state) => println!("Odometry: {:?}", state),
+                    telemetry::Message::OdometryEstimator(state) => println!("Odometry: {:?}", state),
                     _ => {}
                 }
             }

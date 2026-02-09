@@ -1,16 +1,16 @@
 use nalgebra::{SVector, Vector3};
 use shared::{control::controllers::{PID, PID6, pid::PIDConfig}, physics::kinematics::Twist};
 
-use crate::data::condition::config::{Config, regulator::propulsion::VelocityConfig};
+use crate::{data::condition::config::{Config, regulator::propulsion::VelocityConfig}, platform::F};
 
-pub struct Velocity {
-    pids: PID6,
-    setpoint: Twist,
+pub struct VelocityRegulator {
+    pids: PID6<F>,
+    setpoint: Twist<F>,
 }
 
-impl Velocity {
+impl VelocityRegulator {
     pub fn new(config: VelocityConfig) -> Self {
-        let configs: [PIDConfig; 6] = [
+        let configs: [PIDConfig<F>; 6] = [
             config.linear.surge,
             config.linear.sway,
             config.linear.heave,
@@ -25,7 +25,7 @@ impl Velocity {
         }
     }
 
-    pub fn update(&mut self, measured: &Twist, dt: f32) -> Twist {
+    pub fn update(&mut self, measured: &Twist<F>, dt: f32) -> Twist<F> {
         let setpoints: SVector<f32, 6> = SVector::from_row_slice(&[
             self.setpoint.linear.x,
             self.setpoint.linear.y,
@@ -52,7 +52,7 @@ impl Velocity {
         }
     }
 
-    pub fn set_setpoint(&mut self, setpoint: Twist) {
+    pub fn set_setpoint(&mut self, setpoint: Twist<F>) {
         self.setpoint = setpoint;
     }
 
@@ -60,14 +60,14 @@ impl Velocity {
         self.pids.reset();
     }
 
-    pub fn set_gains(&mut self, configs: [PIDConfig; 6]) {
+    pub fn set_gains(&mut self, configs: [PIDConfig<F>; 6]) {
         self.pids.set_gains(&configs);
     }
 }
 
-impl Config<VelocityConfig> for Velocity {
+impl Config<VelocityConfig> for VelocityRegulator {
     fn update_config(&mut self, config: VelocityConfig) {
-        let gains: [PIDConfig; 6] = [
+        let gains: [PIDConfig<F>; 6] = [
             config.linear.surge,
             config.linear.sway,
             config.linear.heave,

@@ -38,6 +38,15 @@ impl Robot {
         self.estimators.odometry.update_angular_velocity(Vector3::new(1.0, 1.0, 0.0));
         self.estimators.odometry.update(0.01);
 
+        /*
+        self.regulators.propulsion.velocity.set_setpoint();
+
+        self.regulators.propulsion.velocity.update(measured, dt)
+
+        let thrusts = self.subsystems.propulsion.calculate_thrusts(wrench);
+        self.subsystems.propulsion.apply_thrusts(thrusts);
+        */
+
         //self.regulators.propulsion.velocity.set_setpoint(Vector3::new(1.0, 0.0, 0.0));
     }
     

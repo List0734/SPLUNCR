@@ -5,7 +5,7 @@ pub use propulsion::PropulsionSubsystem;
 use crate::data::condition::config::SubsystemConfig;
 
 pub struct Subsystems {
-    propulsion: PropulsionSubsystem,
+    pub propulsion: PropulsionSubsystem,
 }
 
 impl Subsystems {

@@ -1,6 +1,10 @@
-use crate::data::condition::state;
+use crate::data::condition::state::estimator::*;
 
 pub enum Message {
-    OdometryState(state::OdometryState),
-//    Status(Status),
+    // Estimators
+    OdometryEstimator(OdometryEstimatorState),
+
+    // Regulators
+
+    // Subsystems
 }

@@ -6,7 +6,7 @@ use serde::Deserialize;
 pub use subsystem::SubsystemConfig;
 pub use regulator::RegulatorConfig;
 
-#[derive(Clone, Copy, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct ConfigBundle {
     pub subsystem: SubsystemConfig,
     pub regulator: RegulatorConfig,

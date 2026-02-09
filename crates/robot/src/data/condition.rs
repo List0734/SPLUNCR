@@ -4,7 +4,7 @@ pub use state::StateBundle;
 pub mod config;
 pub use config::ConfigBundle;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct RobotCondition {
     pub config: ConfigBundle,
     pub state: StateBundle,

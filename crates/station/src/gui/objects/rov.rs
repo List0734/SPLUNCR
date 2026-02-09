@@ -1,17 +1,20 @@
 use std::{fs::File, io::BufReader, path::Path};
 
 use kiss3d::{parry3d::shape::TriMesh, scene::SceneNode, window::Window};
-use nalgebra::{Translation3, Vector3};
-use robot::data::condition::RobotCondition;
+use nalgebra::{Isometry3, Translation3, Vector3};
+use robot::{data::condition::RobotCondition, platform::F};
+use shared::physics::kinematics::Pose;
 
 pub struct RovObject {
     body_node: Option<SceneNode>,
+    thrust_nodes: Vec<SceneNode>,
 }
 
 impl RovObject {
     pub fn new() -> Self {
         Self {
-            body_node: None
+            body_node: None,
+            thrust_nodes: Vec::new(),
         }
     }
 
@@ -26,7 +29,7 @@ impl RovObject {
 
     pub fn update(&mut self, model: &RobotCondition) {
         if let Some(node) = &mut self.body_node {
-            let pose = model.state.odometry.pose;
+            let pose: Pose<F> = model.state.estimator.odometry.pose.cast();
             node.set_local_transformation(pose);
         }
     }

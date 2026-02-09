@@ -2,6 +2,8 @@ use serde::Deserialize;
 
 use shared::control::controllers::pid::PIDConfig;
 
+use crate::platform::F;
+
 #[derive(Clone, Copy, Debug, Deserialize)]
 pub struct VelocityConfig {
     pub linear: Linear,
@@ -10,14 +12,14 @@ pub struct VelocityConfig {
 
 #[derive(Clone, Copy, Debug, Deserialize)]
 pub struct Linear {
-    pub surge: PIDConfig,
-    pub sway: PIDConfig,
-    pub heave: PIDConfig,
+    pub surge: PIDConfig<F>,
+    pub sway: PIDConfig<F>,
+    pub heave: PIDConfig<F>,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize)]
 pub struct Angular {
-    pub roll: PIDConfig,
-    pub pitch: PIDConfig,
-    pub yaw: PIDConfig,
+    pub roll: PIDConfig<F>,
+    pub pitch: PIDConfig<F>,
+    pub yaw: PIDConfig<F>,
 }

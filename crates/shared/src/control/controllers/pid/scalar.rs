@@ -1,42 +1,43 @@
+use nalgebra::RealField;
 use serde::Deserialize;
 
-pub struct PID {
-    config: PIDConfig,
-    integral: f32,
-    prev_error: f32,
+pub struct PID<S> {
+    config: PIDConfig<S>,
+    integral: S,
+    prev_error: S,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize)]
-pub struct PIDConfig {
-    pub kp: f32,
-    pub ki: f32,
-    pub kd: f32,
+pub struct PIDConfig<S> {
+    pub kp: S,
+    pub ki: S,
+    pub kd: S,
 }
 
-impl PID {
-    pub fn new(kp: f32, ki: f32, kd: f32) -> Self {
+impl<S: RealField + Copy> PID<S> {
+    pub fn new(kp: S, ki: S, kd: S) -> Self {
         Self {
             config: PIDConfig { kp, ki, kd },
-            integral: 0.0,
-            prev_error: 0.0,
+            integral: S::zero(),
+            prev_error: S::zero(),
         }
     }
 
-    pub fn from_config(config: PIDConfig) -> Self {
+    pub fn from_config(config: PIDConfig<S>) -> Self {
         Self {
             config,
-            integral: 0.0,
-            prev_error: 0.0,
+            integral: S::zero(),
+            prev_error: S::zero(),
         }
     }
 
-    pub fn set_gains(&mut self, kp: f32, ki: f32, kd: f32) {
+    pub fn set_gains(&mut self, kp: S, ki: S, kd: S) {
         self.config.kp = kp;
         self.config.ki = ki;
         self.config.kd = kd;
     }
 
-    pub fn update(&mut self, setpoint: f32, measurement: f32, dt: f32) -> f32 {
+    pub fn update(&mut self, setpoint: S, measurement: S, dt: S) -> S {
         let PIDConfig { kp, ki, kd } = self.config;
 
         let error = setpoint - measurement;
@@ -50,11 +51,11 @@ impl PID {
     }
 
     pub fn reset(&mut self) {
-        self.integral = 0.0;
-        self.prev_error = 0.0;
+        self.integral = S::zero();
+        self.prev_error = S::zero();
     }
 
-    pub fn error(&self) -> f32 {
+    pub fn error(&self) -> S {
         self.prev_error
     }
 }

@@ -1,9 +1,10 @@
 use std::sync::{Arc, Mutex};
 
 use crossbeam::channel::Receiver;
-use robot::data::{transport::telemetry::Message, condition::RobotCondition};
+use robot::data::{condition::RobotCondition, transport::telemetry::state::State};
+use shared::data::transport::message::Message;
 
-use crate::{Gui, gui::scene::{CubeScene, Scene, StationaryScene}, data::transport::telemetry::Mapper};
+use crate::{Gui, data::transport::telemetry::Mapper, gui::scene::{ConnectingScene, CubeScene, Scene, StationaryScene}};
 
 pub struct Station {
     robot: Arc<Mutex<RobotCondition>>,
@@ -12,7 +13,7 @@ pub struct Station {
 
 impl Station {
     pub fn new(condition: Arc<Mutex<RobotCondition>>) -> Self {
-        let initial_scene = Scene::Stationary(StationaryScene::new());
+        let initial_scene = ConnectingScene::new();
         let gui = Gui::new(initial_scene);
 
         Self {
@@ -42,7 +43,7 @@ impl Station {
     }
     */
 
-    pub async fn run(&mut self, telemetry: &Receiver<Message>) {
+    pub async fn run(&mut self, telemetry: &Receiver<Message<State>>) {
         println!("{:?}", self.robot);
 
         self.gui.run(Arc::clone(&self.robot), telemetry).await;

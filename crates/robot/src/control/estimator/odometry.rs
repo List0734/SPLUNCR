@@ -1,7 +1,8 @@
 use nalgebra::Vector3;
 
 use shared::physics::kinematics::{Pose, Twist};
-use crate::data::transport::telemetry::{Publisher, Message};
+use crate::data::transport::telemetry::state::State;
+use crate::data::transport::telemetry::Publisher;
 
 use crate::data::condition::state::estimator::OdometryEstimatorState;
 use crate::platform::Fp;
@@ -24,7 +25,7 @@ impl Odometry {
 
     pub fn update(&mut self, dt: Fp) -> Twist<Fp> {
         self.integrate(dt); 
-        self.telemetry.publish(Message::OdometryEstimator(self.state));
+        self.telemetry.publish(State::OdometryEstimator(self.state));
         self.state.twist
     }
 

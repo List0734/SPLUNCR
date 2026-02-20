@@ -2,11 +2,11 @@ pub mod subsystem;
 pub mod regulator;
 use std::{fs, io};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 pub use subsystem::SubsystemConfig;
 pub use regulator::RegulatorConfig;
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ConfigBundle {
     pub subsystem: SubsystemConfig,
     pub regulator: RegulatorConfig,

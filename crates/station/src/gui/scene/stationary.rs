@@ -1,9 +1,9 @@
-use egui::{RichText, Ui, text};
+use egui::{Context, RichText, Ui, text};
 use kiss3d::{camera::ArcBall, scene::SceneNode, window::Window};
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 use robot::data::condition::RobotCondition;
 
-use crate::gui::objects::RovObject;
+use crate::gui::{objects::RovObject, scene::{Scene, SceneTransition}, screens::{config_screen, state_screen}};
 
 pub struct StationaryScene {
     camera: ArcBall,
@@ -25,37 +25,37 @@ impl StationaryScene {
     }
 }
 
-impl StationaryScene {
-    pub fn init(&mut self, window: &mut Window) {
+impl Scene for StationaryScene {
+    fn init(&mut self, window: &mut Window) {
         self.rov.init(window)
     }
 
-    pub fn update_ui(&mut self, ui: &mut Ui, robot: &RobotCondition) {
-        let rotation: UnitQuaternion<f64> = robot.state.estimator.odometry.pose.rotation;
-
-        let (roll, pitch, yaw) = rotation.euler_angles();
-
-        ui.horizontal(|ui| {
-            ui.label("Roll (rad):");
-            ui.label(RichText::new(format!("{:.3}", roll)));
+    fn update_ui(&mut self, ctx: &Context, robot: &RobotCondition) -> SceneTransition {
+        egui::Window::new("Robot State")
+            .collapsible(true)
+            .resizable(true)
+            .max_size(ctx.available_rect().size())
+            .show(ctx, |ui| {
+                state_screen(ui, &robot.state);
         });
 
-        ui.horizontal(|ui| {
-            ui.label("Pitch (rad):");
-            ui.label(RichText::new(format!("{:.3}", pitch)));
+        egui::Window::new("Robot Config")
+            .collapsible(true)
+            .resizable(true)
+            .max_size(ctx.available_rect().size())
+            .show(ctx, |ui| {
+                config_screen(ui, &robot.config);
         });
 
-        ui.horizontal(|ui| {
-            ui.label("Yaw (rad):");
-            ui.label(RichText::new(format!("{:.3}", yaw)));
-        });
+        SceneTransition::None
     }
 
-    pub fn update_3d(&mut self, _window: &mut Window, robot: &RobotCondition) {
-        self.rov.update(robot)
+    fn update_3d(&mut self, _window: &mut Window, robot: &RobotCondition) -> SceneTransition {
+        self.rov.update(robot);
+        SceneTransition::None
     }
 
-    pub fn camera(&mut self) -> &mut ArcBall {
+    fn camera(&mut self) -> &mut ArcBall {
         &mut self.camera
     }
 }

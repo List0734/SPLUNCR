@@ -1,21 +1,21 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::platform::F;
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub struct ThrusterConfig {
-    pub name: String,
+    pub id: i8,
     pub placement: Placement,
     //pub characteristics: 
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub struct Placement {
     pub position: [F; 3],
     pub direction: [F; 3],
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ThrustCharacteristics {
 
 }

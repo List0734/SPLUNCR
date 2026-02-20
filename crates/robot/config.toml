@@ -1,42 +1,42 @@
 [[subsystem.propulsion.thrusters]]
-name = "1"
-placement.position = [0.5, 0.5, 0.5]
-placement.direction = [0.5, 0.5, 0.5]
+id = 1
+placement.position = [ 1.0,  1.0,  1.0]
+placement.direction = [ 1.0,  1.0,  1.0]
 
 [[subsystem.propulsion.thrusters]]
-name = "2"
-placement.position = [0.5, 0.5, 0.5]
-placement.direction = [0.5, 0.5, 0.5]
+id = 2
+placement.position = [ 1.0,  1.0, -1.0]
+placement.direction = [ 1.0,  1.0, -1.0]
 
 [[subsystem.propulsion.thrusters]]
-name = "3"
-placement.position = [0.5, 0.5, 0.5]
-placement.direction = [0.5, 0.5, 0.5]
+id = 3
+placement.position = [ 1.0, -1.0,  1.0]
+placement.direction = [ 1.0, -1.0,  1.0]
 
 [[subsystem.propulsion.thrusters]]
-name = "4"
-placement.position = [0.5, 0.5, 0.5]
-placement.direction = [0.5, 0.5, 0.5]
+id = 4
+placement.position = [ 1.0, -1.0, -1.0]
+placement.direction = [ 1.0, -1.0, -1.0]
 
 [[subsystem.propulsion.thrusters]]
-name = "5"
-placement.position = [0.5, 0.5, 0.5]
-placement.direction = [0.5, 0.5, 0.5]
+id = 5
+placement.position = [-1.0,  1.0,  1.0]
+placement.direction = [-1.0,  1.0,  1.0]
 
 [[subsystem.propulsion.thrusters]]
-name = "6"
-placement.position = [0.5, 0.5, 0.5]
-placement.direction = [0.5, 0.5, 0.5]
+id = 6
+placement.position = [-1.0,  1.0, -1.0]
+placement.direction = [-1.0,  1.0, -1.0]
 
 [[subsystem.propulsion.thrusters]]
-name = "7"
-placement.position = [0.5, 0.5, 0.5]
-placement.direction = [0.5, 0.5, 0.5]
+id = 7
+placement.position = [-1.0, -1.0,  1.0]
+placement.direction = [-1.0, -1.0,  1.0]
 
 [[subsystem.propulsion.thrusters]]
-name = "8"
-placement.position = [0.5, 0.5, 0.5]
-placement.direction = [0.5, 0.5, 0.5]
+id = 8
+placement.position = [-1.0, -1.0, -1.0]
+placement.direction = [-1.0, -1.0, -1.0]
 
 [regulator.propulsion.velocity.linear]
 surge  = { kp = 1.0, ki = 0.0, kd = 0.1 }

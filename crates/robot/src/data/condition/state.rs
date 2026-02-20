@@ -1,7 +1,8 @@
 pub mod estimator;
 pub use estimator::EstimatorBundle;
+use serde::Serialize;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize)]
 pub struct StateBundle {
     pub estimator: EstimatorBundle,
 }

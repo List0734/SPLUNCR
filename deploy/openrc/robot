@@ -1,0 +1,21 @@
+#!/sbin/openrc-run                                                                                                                                                                                              
+                                                                                                                                                                                                                
+name="robot"                                                                                                                                                                                                    
+description="Robot control service"                                                                                                                                                                             
+                                                                                                                                                                                                                
+command="doas -u user /home/user/robot"                                                                                                                                                                         
+command_user="user:user"                                                                                                                                                                                        
+command_dir="/home/user"                                                                                                                                                                                        
+                                                                                                                                                                                                                
+supervisor="supervise-daemon"                                                                                                                                                                                   
+pidfile="/run/$SVCNAME.pid"                                                                                                                                                                                     
+respawn_delay=2                                                                                                                                                                                                 
+                                                                                                                                                                                                                
+# Logging                                                                                                                                                                                                       
+output_log="/var/log/robot.log"                                                                                                                                                                                 
+error_log="/var/log/robot.err"                                                                                                                                                                                  
+                                                                                                                                                                                                                
+depend() {                                                                                                                                                                                                      
+    need net                                                                                                                                                                                                    
+    after dhcpcd                                                                                                                                                                                                
+}

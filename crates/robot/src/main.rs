@@ -1,27 +1,18 @@
-use robot::{control::estimator, data::transport::telemetry::{self, Telemetry}};
+use robot::{Robot, control::estimator, data::transport::telemetry::{self, Telemetry}};
+use std::{thread, time::{Duration, SystemTime, UNIX_EPOCH}};
 
 
 
 fn main() {
-    let telemetry = Telemetry::new();
+    let now = SystemTime::now();
+    let since_epoch = now.duration_since(UNIX_EPOCH).expect("Time went backwards");
+    println!("Program started at {}", since_epoch.as_secs());
 
-    let mut odometry = estimator::Odometry::new(telemetry.publisher());
-
-    std::thread::spawn({
-        let telemetry = telemetry; // move Telemetry into thread
-        move || {
-            while let Some(msg) = telemetry.receive() {
-                match msg {
-                    telemetry::Message::OdometryEstimator(state) => println!("Odometry: {:?}", state),
-                    _ => {}
-                }
-            }
-        }
-    });
+    let mut robot = Robot::new();
 
     loop {
-        odometry.update(0.01);
+        robot.run();
 
-        //telemetry.receive().unwrap();
+        thread::sleep(Duration::from_millis(100));
     }
 }

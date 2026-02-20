@@ -1,5 +1,5 @@
 use nalgebra::RealField;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub struct PID<S> {
     config: PIDConfig<S>,
@@ -7,7 +7,7 @@ pub struct PID<S> {
     prev_error: S,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct PIDConfig<S> {
     pub kp: S,
     pub ki: S,

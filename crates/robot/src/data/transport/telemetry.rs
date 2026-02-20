@@ -1,14 +1,15 @@
 use crossbeam::channel::{unbounded, Receiver};
 
-mod message;
-pub use message::Message;
-
 mod publisher;
 pub use publisher::Publisher;
 
+pub mod state;
+pub use state::StatePayload;
+use shared::data::transport::message::Message;
+
 pub struct Telemetry {
     publisher: Publisher,
-    receiver: Receiver<Message>,
+    receiver: Receiver<Message<StatePayload>>,
 }
 
 impl Telemetry {
@@ -24,11 +25,11 @@ impl Telemetry {
         self.publisher.clone()
     }
 
-    pub fn receiver(&self) -> Receiver<Message> {
+    pub fn receiver(&self) -> Receiver<Message<StatePayload>> {
         self.receiver.clone()
     }
 
-    pub fn receive(&self) -> Option<Message> {
+    pub fn receive(&self) -> Option<Message<StatePayload>> {
         match self.receiver.recv() {
             Ok(message) => Some(message),
             Err(_) => None,

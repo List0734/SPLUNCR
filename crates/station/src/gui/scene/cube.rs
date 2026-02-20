@@ -1,6 +1,9 @@
-use egui::Ui;
+use egui::{Context, Ui};
 use kiss3d::{camera::ArcBall, scene::SceneNode, window::Window};
 use nalgebra::{Point3, UnitQuaternion, Vector3};
+use robot::data::condition::RobotCondition;
+
+use crate::gui::scene::{Scene, SceneTransition};
 
 pub struct CubeScene {
     camera: ArcBall,
@@ -33,8 +36,8 @@ impl CubeScene {
     }
 }
 
-impl CubeScene {
-    pub fn init(&mut self, window: &mut Window) {
+impl Scene for CubeScene {
+    fn init(&mut self, window: &mut Window) {
         if self.cube.is_none() {
             let mut cube = window.add_cube(1.0, 1.0, 1.0);
             cube.set_color(0.2, 0.7, 0.3);
@@ -42,23 +45,30 @@ impl CubeScene {
         }
     }
 
-    pub fn update_ui(&mut self, ui: &mut Ui) {
-        ui.label("Rotation (radians):");
-        ui.add(egui::Slider::new(&mut self.rotation_x, 0.0..=std::f32::consts::TAU).text("X"));
-        ui.add(egui::Slider::new(&mut self.rotation_y, 0.0..=std::f32::consts::TAU).text("Y"));
-        ui.add(egui::Slider::new(&mut self.rotation_z, 0.0..=std::f32::consts::TAU).text("Z"));
-        ui.add(egui::Slider::new(&mut self.scale, 0.1..=3.0).text("Scale"));
+    fn update_ui(&mut self, ctx: &Context, _robot: &RobotCondition) -> SceneTransition {
+        egui::Window::new("Transform Controls")
+            .resizable(false)
+            .collapsible(false)
+            .show(ctx, |ui| {
+                ui.label("Rotation (radians):");
+                ui.add(egui::Slider::new(&mut self.rotation_x, 0.0..=std::f32::consts::TAU).text("X"));
+                ui.add(egui::Slider::new(&mut self.rotation_y, 0.0..=std::f32::consts::TAU).text("Y"));
+                ui.add(egui::Slider::new(&mut self.rotation_z, 0.0..=std::f32::consts::TAU).text("Z"));
+                ui.add(egui::Slider::new(&mut self.scale, 0.1..=3.0).text("Scale"));
+        });
+        SceneTransition::None
     }
 
-    pub fn update_3d(&mut self, _window: &mut Window) {
+    fn update_3d(&mut self, _window: &mut Window, _robot: &RobotCondition) -> SceneTransition {
         if let Some(cube) = &mut self.cube {
             let rot = UnitQuaternion::from_euler_angles(self.rotation_x, self.rotation_y, self.rotation_z);
             cube.set_local_rotation(rot);
             cube.set_local_scale(self.scale, self.scale, self.scale);
         }
+        SceneTransition::None
     }
-
-    pub fn camera(&mut self) -> &mut ArcBall {
+    
+    fn camera(&mut self) -> &mut ArcBall {
         &mut self.camera
     }
 }

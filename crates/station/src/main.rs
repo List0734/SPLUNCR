@@ -6,7 +6,7 @@ use station::{Gui, gui::scene::{CubeScene, Scene}};
 
 #[kiss3d::main]
 async fn main() {
-    let initial_scene = Scene::Cube(CubeScene::new());
+    let initial_scene = CubeScene::new();
     let mut gui = Gui::new(initial_scene);
 
     // Run GUI main loop (camera is now fully owned by Gui)

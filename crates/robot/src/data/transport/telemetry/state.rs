@@ -1,6 +1,9 @@
 use crate::data::condition::state::estimator::*;
 
-pub enum Message {
+pub type State = StatePayload;
+
+#[derive(Debug)]
+pub enum StatePayload {
     // Estimators
     OdometryEstimator(OdometryEstimatorState),
 

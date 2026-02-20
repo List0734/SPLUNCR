@@ -1,7 +1,8 @@
 mod odometry;
 pub use odometry::OdometryEstimatorState;
+use serde::Serialize;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize)]
 pub struct EstimatorBundle {
     pub odometry: OdometryEstimatorState,
 }

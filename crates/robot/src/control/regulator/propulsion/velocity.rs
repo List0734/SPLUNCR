@@ -1,15 +1,22 @@
 use nalgebra::{SVector, Vector3};
 use shared::{control::controllers::{PID, PID6, pid::PIDConfig}, physics::kinematics::Twist};
 
-use crate::{data::condition::config::{Config, regulator::propulsion::VelocityRegulatorConfig}, platform::F};
+use crate::{
+    data::{
+        condition::{config::{Config, regulator::propulsion::VelocityRegulatorConfig}, state::regulator::VelocityRegulatorState},
+        transport::telemetry::{Publisher, state::State},
+    },
+    platform::F,
+};
 
 pub struct VelocityRegulator {
     pids: PID6<F>,
     setpoint: Twist<F>,
+    telemetry: Publisher,
 }
 
 impl VelocityRegulator {
-    pub fn new(config: VelocityRegulatorConfig) -> Self {
+    pub fn new(config: VelocityRegulatorConfig, telemetry: Publisher) -> Self {
         let configs: [PIDConfig<F>; 6] = [
             config.linear.surge,
             config.linear.sway,
@@ -22,6 +29,7 @@ impl VelocityRegulator {
         Self {
             pids: PID6::new(configs),
             setpoint: Twist::zero(),
+            telemetry,
         }
     }
 
@@ -46,10 +54,17 @@ impl VelocityRegulator {
 
         let output = self.pids.update(&setpoints, &measured_vec, dt);
 
-        Twist {
+        let output = Twist {
             linear: Vector3::new(output[0], output[1], output[2]),
             angular: Vector3::new(output[3], output[4], output[5]),
-        }
+        };
+
+        self.telemetry.publish(State::VelocityRegulator(VelocityRegulatorState {
+            setpoint: self.setpoint,
+            output,
+        }));
+
+        output
     }
 
     pub fn set_setpoint(&mut self, setpoint: Twist<F>) {

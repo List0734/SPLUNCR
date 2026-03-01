@@ -10,6 +10,7 @@ pub enum StatePayload {
     OdometryEstimator(OdometryEstimatorState),
 
     // Regulators
+    VelocityRegulator(VelocityRegulatorState),
     CoastRegulator(CoastRegulatorState),
 
     // Subsystems

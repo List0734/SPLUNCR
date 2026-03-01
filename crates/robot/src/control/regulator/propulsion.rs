@@ -13,7 +13,7 @@ pub struct PropulsionRegulator {
 impl PropulsionRegulator {
     pub fn new(config: PropulsionRegulatorConfig, telemetry: Publisher) -> Self {
         Self {
-            velocity: VelocityRegulator::new(config.velocity),
+            velocity: VelocityRegulator::new(config.velocity, telemetry.clone()),
             thruster: thruster::CoastRegulator::new(config.thruster.coast, telemetry),
         }
     }

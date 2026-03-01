@@ -1,5 +1,5 @@
 pub mod propulsion;
-pub use propulsion::{CoastRegulatorState, PropulsionRegulatorState};
+pub use propulsion::{CoastRegulatorState, PropulsionRegulatorState, VelocityRegulatorState};
 
 use serde::Serialize;
 

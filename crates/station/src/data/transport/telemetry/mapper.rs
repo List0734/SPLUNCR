@@ -9,6 +9,7 @@ impl Mapper {
     pub fn ingest(robot: &mut RobotCondition, message: Message<State>) {
         match message.payload {
             State::OdometryEstimator(odometry) => robot.state.estimator.odometry = odometry,
+            State::VelocityRegulator(velocity) => robot.state.regulator.propulsion.velocity = velocity,
             State::CoastRegulator(coast) => robot.state.regulator.propulsion.thruster.coast = coast,
         }
     }

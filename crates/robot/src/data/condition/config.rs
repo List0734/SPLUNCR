@@ -6,8 +6,12 @@ use serde::{Deserialize, Serialize};
 pub use subsystem::SubsystemConfig;
 pub use regulator::RegulatorConfig;
 
+mod communication;
+pub use communication::CommunicationConfig;
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ConfigBundle {
+    pub communication: CommunicationConfig,
     pub subsystem: SubsystemConfig,
     pub regulator: RegulatorConfig,
 }

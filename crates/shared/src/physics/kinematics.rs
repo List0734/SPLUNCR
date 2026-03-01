@@ -1,5 +1,5 @@
 use nalgebra::{Isometry3, RealField, Unit, Vector3, Vector6};
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
 pub type Distance<S> = S;
 pub type Velocity<S> = S;
@@ -35,7 +35,7 @@ impl<S: RealField> Placement<S> {
     }
 }
 
-#[derive(Clone, Copy, Debug, Serialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Twist<S: RealField + Serialize + Copy> {
     pub linear: Vector3<S>,
     pub angular: Vector3<S>,

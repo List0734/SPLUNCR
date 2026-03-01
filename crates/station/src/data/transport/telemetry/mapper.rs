@@ -7,13 +7,9 @@ pub struct Mapper;
 
 impl Mapper {
     pub fn ingest(robot: &mut RobotCondition, message: Message<State>) {
-        let mut state = robot.state;
-        let mut estimator = state.estimator;
-        //let mut regulator = state.regulator;
         match message.payload {
-            State::OdometryEstimator(state) => estimator.odometry = state,
-            _ => {}
+            State::OdometryEstimator(odometry) => robot.state.estimator.odometry = odometry,
+            State::CoastRegulator(coast) => robot.state.regulator.propulsion.thruster.coast = coast,
         }
-        println!("{:?}", robot);
     }
 }

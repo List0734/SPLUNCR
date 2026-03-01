@@ -1,3 +1,8 @@
+[communication]
+command_listen_addr = "0.0.0.0:9000"
+telemetry_target_addr = "127.0.0.1:9001"
+telemetry_bind_addr = "0.0.0.0:0"
+
 [[subsystem.propulsion.thrusters]]
 id = 1
 placement.position = [ 1.0,  1.0,  1.0]
@@ -47,3 +52,7 @@ heave  = { kp = 2.0, ki = 0.0, kd = 0.2 }
 roll  = { kp = 0.5, ki = 0.0, kd = 0.05 }
 pitch = { kp = 0.5, ki = 0.0, kd = 0.05 }
 yaw   = { kp = 0.8, ki = 0.0, kd = 0.1 }
+
+[regulator.propulsion.thruster]
+accel_rate = 2.0
+decel_rate = 1.0

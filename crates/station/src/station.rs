@@ -4,11 +4,12 @@ use crossbeam::channel::Receiver;
 use robot::data::{condition::RobotCondition, transport::telemetry::state::State};
 use shared::data::transport::message::Message;
 
-use crate::{Gui, data::transport::telemetry::Mapper, gui::scene::{ConnectingScene, CubeScene, Scene, StationaryScene}};
+use crate::{Gui, data::transport::{communication::{self, Communication}, telemetry::Mapper}, gui::scene::{ConnectingScene, CubeScene, Scene, StationaryScene}};
 
 pub struct Station {
     robot: Arc<Mutex<RobotCondition>>,
     gui: Gui,
+    communication: Arc<Communication>,
 }
 
 impl Station {
@@ -16,36 +17,17 @@ impl Station {
         let initial_scene = ConnectingScene::new();
         let gui = Gui::new(initial_scene);
 
+        let communication = Arc::new(Communication::new("0.0.0.0:9001").expect("Error Opening Port"));
+        communication.spawn_telemetry_receiver(Arc::clone(&condition));
+
         Self {
             robot: condition,
-            gui
+            gui,
+            communication,
         }
     }
-
-    /*
-    pub fn update_condition(&mut self, condition: RobotCondition) {
-        self.robot = condition;
-    }
-    */
-
-    /*
-    pub fn receive_message(&mut self, message: Message) {
-        println!("{:?}", self.robot);
-        Mapper::ingest(&mut self.robot, message);
-    }
-    */
-
-   /* 
-    pub fn receive_messages(&mut self, receiver: Receiver<Message>) {
-        while let Ok(message) = receiver.try_recv() {
-            station.receive_message(message);
-        }
-    }
-    */
-
-    pub async fn run(&mut self, telemetry: &Receiver<Message<State>>) {
-        println!("{:?}", self.robot);
-
-        self.gui.run(Arc::clone(&self.robot), telemetry).await;
+    
+    pub async fn run(&mut self) {
+        self.gui.run(Arc::clone(&self.robot)).await;
     }
 }

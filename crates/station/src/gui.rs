@@ -34,14 +34,8 @@ impl Gui {
         gui 
     }
 
-    pub async fn run(&mut self, robot: Arc<Mutex<RobotCondition>>, telemetry: &Receiver<Message<State>>) {
+    pub async fn run(&mut self, robot: Arc<Mutex<RobotCondition>>) {
         while self.window.render_with_camera(self.active_scene.camera()).await {
-            // Pull messages from the receiver each frame
-            while let Ok(msg) = telemetry.try_recv() {
-                let mut robot_guard = robot.lock().unwrap();
-                Mapper::ingest(&mut robot_guard, msg);
-            }
-
             let robot_snapshot = { robot.lock().unwrap().clone() };
 
             // Draw UI

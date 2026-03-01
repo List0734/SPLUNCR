@@ -8,14 +8,12 @@ use crate::data::condition::state::estimator::OdometryEstimatorState;
 use crate::platform::Fp;
 
 pub struct Odometry {
-    //sensors: subsystem::Sensors,
     state: OdometryEstimatorState,
-    //config: config::control::Odometry,
     telemetry: Publisher,
 }
 
 impl Odometry {
-    pub fn new(telemetry: Publisher/*sensors: &subsystem::Sensors*/) -> Self {
+    pub fn new(telemetry: Publisher) -> Self {
         Self {
             //sensors,
             state: OdometryEstimatorState::default(),

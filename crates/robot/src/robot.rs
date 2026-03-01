@@ -3,17 +3,19 @@ use std::env;
 
 use nalgebra::Vector3;
 
-use crate::{control::{estimator::Estimators, regulator::Regulators}, data::{condition::ConfigBundle, transport::telemetry::{self, Telemetry}}, hardware::subsystem::Subsystems};
+use crate::{control::{estimator::Estimators, regulator::Regulators}, data::{condition::ConfigBundle, transport::{communication::Communication, telemetry::{self, Telemetry}}}, hardware::{interface::Hal, peripheral::Peripherals, subsystem::Subsystems}};
 
-pub struct Robot {
+pub struct Robot<H: Hal> {
+    communication: Communication,
     estimators: Estimators,
     subsystems: Subsystems,
     regulators: Regulators,
+    peripherals: Peripherals<H>,
     telemetry: Telemetry,
 }
 
-impl Robot {
-    pub fn new() -> Self {
+impl<H: Hal> Robot<H> {
+    pub fn new(peripherals: Peripherals<H>) -> Self {
         println!("Initializing Robot...");
         let telemetry = Telemetry::new();
 
@@ -32,9 +34,11 @@ impl Robot {
         println!("Configuration loaded from {:?}", path);
 
         Self {
+            communication: Communication::new(config.communication).expect("Failed to establish communication."),
             estimators: Estimators::new(telemetry.publisher()),
             subsystems: Subsystems::new(config.subsystem),
-            regulators: Regulators::new(config.regulator),
+            regulators: Regulators::new(config.regulator, telemetry.publisher()),
+            peripherals,
             telemetry,
         }
     }
@@ -54,9 +58,9 @@ impl Robot {
         */
 
         //self.regulators.propulsion.velocity.set_setpoint(Vector3::new(1.0, 0.0, 0.0));
+        while let Some(message) = self.telemetry.receive() {
+            let bytes = bincode::serialize(&message).unwrap();
+            self.communication.telemetry.send(&bytes).expect("Failed something");
+        }
     }
-    
-    pub fn telemetry(&self) -> &Telemetry {
-        &self.telemetry
-    }    
 }

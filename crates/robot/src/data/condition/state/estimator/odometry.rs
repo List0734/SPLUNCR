@@ -1,9 +1,9 @@
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use shared::physics::kinematics::{Pose, Twist};
 
 use crate::platform::Fp;
 
-#[derive(Clone, Copy, Debug, Serialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct OdometryEstimatorState {
     pub pose: Pose<Fp>,
     pub twist: Twist<Fp>,

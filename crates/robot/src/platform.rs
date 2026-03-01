@@ -12,3 +12,9 @@ pub mod subsystem {
     }
 }
 
+pub mod peripheral {
+    pub const MOTOR_PINS: [u8; super::subsystem::propulsion::NUM_THRUSTERS] = [
+        4, 5, 6, 12, 13, 16, 17, 18,
+    ];
+}
+

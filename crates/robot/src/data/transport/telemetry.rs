@@ -30,7 +30,7 @@ impl Telemetry {
     }
 
     pub fn receive(&self) -> Option<Message<StatePayload>> {
-        match self.receiver.recv() {
+        match self.receiver.try_recv() {
             Ok(message) => Some(message),
             Err(_) => None,
         }

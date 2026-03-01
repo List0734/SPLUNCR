@@ -53,6 +53,6 @@ roll  = { kp = 0.5, ki = 0.0, kd = 0.05 }
 pitch = { kp = 0.5, ki = 0.0, kd = 0.05 }
 yaw   = { kp = 0.8, ki = 0.0, kd = 0.1 }
 
-[regulator.propulsion.thruster]
+[regulator.propulsion.thruster.coast]
 accel_rate = 2.0
 decel_rate = 1.0

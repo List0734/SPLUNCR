@@ -1,7 +1,7 @@
 use nalgebra::{SVector, Vector3};
 use shared::{control::controllers::{PID, PID6, pid::PIDConfig}, physics::kinematics::Twist};
 
-use crate::{data::condition::config::{Config, regulator::propulsion::VelocityConfig}, platform::F};
+use crate::{data::condition::config::{Config, regulator::propulsion::VelocityRegulatorConfig}, platform::F};
 
 pub struct VelocityRegulator {
     pids: PID6<F>,
@@ -9,7 +9,7 @@ pub struct VelocityRegulator {
 }
 
 impl VelocityRegulator {
-    pub fn new(config: VelocityConfig) -> Self {
+    pub fn new(config: VelocityRegulatorConfig) -> Self {
         let configs: [PIDConfig<F>; 6] = [
             config.linear.surge,
             config.linear.sway,
@@ -65,8 +65,8 @@ impl VelocityRegulator {
     }
 }
 
-impl Config<VelocityConfig> for VelocityRegulator {
-    fn update_config(&mut self, config: VelocityConfig) {
+impl Config<VelocityRegulatorConfig> for VelocityRegulator {
+    fn update_config(&mut self, config: VelocityRegulatorConfig) {
         let gains: [PIDConfig<F>; 6] = [
             config.linear.surge,
             config.linear.sway,

@@ -3,7 +3,7 @@ pub use velocity::VelocityRegulator;
 
 pub mod thruster;
 
-use crate::{data::condition::config::regulator::PropulsionConfig, data::transport::telemetry::Publisher};
+use crate::{data::condition::config::regulator::PropulsionRegulatorConfig, data::transport::telemetry::Publisher};
 
 pub struct PropulsionRegulator {
     pub velocity: VelocityRegulator,
@@ -11,10 +11,10 @@ pub struct PropulsionRegulator {
 }
 
 impl PropulsionRegulator {
-    pub fn new(config: PropulsionConfig, telemetry: Publisher) -> Self {
+    pub fn new(config: PropulsionRegulatorConfig, telemetry: Publisher) -> Self {
         Self {
             velocity: VelocityRegulator::new(config.velocity),
-            thruster: thruster::CoastRegulator::new(config.thruster, telemetry),
+            thruster: thruster::CoastRegulator::new(config.thruster.coast, telemetry),
         }
     }
 }

@@ -2,7 +2,7 @@ use shared::control::controllers::slew_rate_limiter::{SlewRateLimiter, SlewRateL
 
 use crate::{
     data::{
-        condition::{config::{Config, regulator::propulsion::thruster::CoastConfig}, state::regulator::CoastRegulatorState},
+        condition::{config::{Config, regulator::propulsion::thruster::CoastRegulatorConfig}, state::regulator::CoastRegulatorState},
         transport::telemetry::{Publisher, state::State},
     },
     platform::{F, subsystem::propulsion::NUM_THRUSTERS},
@@ -14,7 +14,7 @@ pub struct CoastRegulator {
 }
 
 impl CoastRegulator {
-    pub fn new(config: CoastConfig, telemetry: Publisher) -> Self {
+    pub fn new(config: CoastRegulatorConfig, telemetry: Publisher) -> Self {
         let limiter_config = SlewRateLimiterConfig {
             rising_rate: config.accel_rate,
             falling_rate: config.decel_rate,
@@ -41,8 +41,8 @@ impl CoastRegulator {
     }
 }
 
-impl Config<CoastConfig> for CoastRegulator {
-    fn update_config(&mut self, config: CoastConfig) {
+impl Config<CoastRegulatorConfig> for CoastRegulator {
+    fn update_config(&mut self, config: CoastRegulatorConfig) {
         let limiter_config = SlewRateLimiterConfig {
             rising_rate: config.accel_rate,
             falling_rate: config.decel_rate,

@@ -5,7 +5,7 @@ use shared::control::controllers::pid::PIDConfig;
 use crate::platform::F;
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-pub struct VelocityConfig {
+pub struct VelocityRegulatorConfig {
     pub linear: Linear,
     pub angular: Angular,
 }

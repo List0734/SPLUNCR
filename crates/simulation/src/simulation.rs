@@ -12,9 +12,10 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new() -> Self {
-        let robot = Arc::new(Mutex::new(Robot::new(SimHal::init())));
-        
         let config = ConfigBundle::load("../robot/config.toml");
+
+        let robot = Arc::new(Mutex::new(Robot::new(config.clone(), SimHal::init())));
+
         let condition = Arc::new(Mutex::new(RobotCondition::default(config)));
         let station = Station::new(condition);
 

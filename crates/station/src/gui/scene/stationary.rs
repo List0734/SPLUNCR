@@ -26,8 +26,8 @@ impl StationaryScene {
 }
 
 impl Scene for StationaryScene {
-    fn init(&mut self, window: &mut Window) {
-        self.rov.init(window)
+    fn init(&mut self, window: &mut Window, robot: &RobotCondition) {
+        self.rov.init(window, robot)
     }
 
     fn update_ui(&mut self, ctx: &Context, robot: &RobotCondition) -> SceneTransition {

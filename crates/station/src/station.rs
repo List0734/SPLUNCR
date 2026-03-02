@@ -15,7 +15,8 @@ pub struct Station {
 impl Station {
     pub fn new(condition: Arc<Mutex<RobotCondition>>) -> Self {
         let initial_scene = ConnectingScene::new();
-        let gui = Gui::new(initial_scene);
+        let robot_snapshot = condition.lock().unwrap().clone();
+        let gui = Gui::new(initial_scene, &robot_snapshot);
 
         let communication = Arc::new(Communication::new("0.0.0.0:9001").expect("Error Opening Port"));
         communication.spawn_telemetry_receiver(Arc::clone(&condition));

@@ -1,9 +1,9 @@
-use std::{fs::File, io::BufReader, path::Path};
-
-use kiss3d::{parry3d::shape::TriMesh, scene::SceneNode, window::Window};
-use nalgebra::{Isometry3, Quaternion, Translation3, Unit, UnitQuaternion, Vector3};
-use robot::{data::condition::RobotCondition, platform::{F, subsystem::propulsion::NUM_THRUSTERS}};
+use kiss3d::{scene::SceneNode, window::Window};
+use nalgebra::{Isometry3, Translation3, Unit, UnitQuaternion, Vector3};
+use robot::{data::condition::RobotCondition, platform::F};
 use shared::physics::kinematics::Pose;
+
+const THRUSTER_CONE_SIZE: f32 = 0.5;
 
 pub struct RovObject {
     body_node: Option<SceneNode>,
@@ -18,43 +18,47 @@ impl RovObject {
         }
     }
 
-    pub fn init(&mut self, window: &mut Window) {
-        let mut cube = window.add_cube(2.0, 1.0, 1.2);
-        //let mut cube = window.add_obj(Path::new("./test.obj"), Path::new(""), Vector3::new(0.5, 0.5, 0.5));
-        cube.set_color(0.1, 0.5, 0.8);
-        self.body_node = Some(cube);
+    pub fn init(&mut self, window: &mut Window, robot: &RobotCondition) {
+        let mut root = window.add_group();
 
-        // Create thruster nodes
-        for _ in 0..NUM_THRUSTERS {
-            let mut thruster = window.add_cone(0.25, 0.5);
-            thruster.set_color(1.0, 1.0, 1.0);
-            self.thrust_nodes.push(thruster);
-        }  
+        let mut hull = root.add_cube(2.0, 1.0, 1.2);
+        hull.set_color(0.1, 0.5, 0.8);
+
+        for thruster in robot.config.subsystem.propulsion.thrusters.iter() {
+            let position = Vector3::from(thruster.placement.position);
+            let direction = Vector3::from(thruster.placement.direction);
+
+            let align_y_to_z = UnitQuaternion::from_axis_angle(
+                &Vector3::x_axis(),
+                std::f32::consts::FRAC_PI_2,
+            );
+            let target_rot = UnitQuaternion::rotation_between(
+                &Vector3::z_axis(),
+                &Unit::new_normalize(direction),
+            )
+            .unwrap_or_default();
+
+            let mut group = root.add_group();
+            group.set_local_transformation(Isometry3::from_parts(
+                Translation3::from(position),
+                target_rot * align_y_to_z,
+            ));
+
+            let mut cone = group.add_cone(THRUSTER_CONE_SIZE / 2.0, THRUSTER_CONE_SIZE);
+            cone.set_color(1.0, 1.0, 1.0);
+            self.thrust_nodes.push(cone);
+        }
+
+        self.body_node = Some(root);
     }
 
     pub fn update(&mut self, robot: &RobotCondition) {
-        // Update thruster positions
-        let thrusters = robot.config.subsystem.propulsion.thrusters;
-        for (thruster, node) in thrusters.iter().zip(self.thrust_nodes.iter_mut()) {
-            let placement = thruster.placement;
-            let position = Vector3::from(placement.position);
-            let direction = Vector3::from(placement.direction);
-
-            // Pre-rotation needed to align the cone +y up axis to +z
-            let align_y_to_z = UnitQuaternion::from_axis_angle(&Vector3::x_axis(), std::f32::consts::FRAC_PI_2);
-
-            let target_rot = UnitQuaternion::rotation_between(&Vector3::z_axis(), &Unit::new_normalize(direction))
-                .unwrap_or_default();
-
-            // Combine the rotations: first align cone, then point in direction
-            let rotation = target_rot * align_y_to_z;
-
-            let iso = Isometry3::from_parts(
-                Translation3::from(position),
-                rotation
-            );
-
-            node.set_local_transformation(iso);
+        let output = &robot.state.regulator.propulsion.thruster.coast.output;
+        for (node, &thrust) in self.thrust_nodes.iter_mut().zip(output.iter()) {
+            let t = thrust.abs().clamp(0.0, 1.0);
+            let s = THRUSTER_CONE_SIZE * t;
+            node.set_local_scale(s, s, s);
+            node.set_local_translation(Translation3::new(0.0, s / 2.0, 0.0));
         }
 
         if let Some(node) = &mut self.body_node {

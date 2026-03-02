@@ -37,7 +37,7 @@ impl CubeScene {
 }
 
 impl Scene for CubeScene {
-    fn init(&mut self, window: &mut Window) {
+    fn init(&mut self, window: &mut Window, _robot: &RobotCondition) {
         if self.cube.is_none() {
             let mut cube = window.add_cube(1.0, 1.0, 1.0);
             cube.set_color(0.2, 0.7, 0.3);

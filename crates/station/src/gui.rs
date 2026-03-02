@@ -20,7 +20,7 @@ pub struct Gui {
 }
 
 impl Gui {
-    pub fn new<S: Scene + 'static>(initial_scene: S) -> Self {
+    pub fn new<S: Scene + 'static>(initial_scene: S, robot: &RobotCondition) -> Self {
         let mut window = Window::new("Station");
         window.set_light(Light::StickToCamera);
 
@@ -29,9 +29,9 @@ impl Gui {
             active_scene: Box::new(initial_scene),
         };
 
-        gui.active_scene.init(&mut gui.window);
+        gui.active_scene.init(&mut gui.window, robot);
 
-        gui 
+        gui
     }
 
     pub async fn run(&mut self, robot: Arc<Mutex<RobotCondition>>) {
@@ -55,7 +55,7 @@ impl Gui {
 
             match transition {
                 SceneTransition::Switch(mut new_scene) => {
-                    new_scene.init(&mut self.window);
+                    new_scene.init(&mut self.window, &robot_snapshot);
                     self.active_scene = new_scene;
                 }
                 SceneTransition::None => {}
@@ -63,8 +63,8 @@ impl Gui {
         }
     }
 
-    pub fn switch_scene(&mut self, scene: Box<dyn Scene>) {
+    pub fn switch_scene(&mut self, scene: Box<dyn Scene>, robot: &RobotCondition) {
         self.active_scene = scene;
-        self.active_scene.init(&mut self.window);
+        self.active_scene.init(&mut self.window, robot);
     }
 }

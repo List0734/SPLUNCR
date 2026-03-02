@@ -22,7 +22,7 @@ impl ConnectingScene {
 }
 
 impl Scene for ConnectingScene {
-    fn init(&mut self, _window: &mut Window) {
+    fn init(&mut self, _window: &mut Window, _robot: &RobotCondition) {
         // No 3D objects required
     }
 

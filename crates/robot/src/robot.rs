@@ -1,6 +1,6 @@
 use nalgebra::Vector3;
 
-use crate::{control::{estimator::Estimators, regulator::Regulators}, data::{condition::ConfigBundle, transport::{communication::Communication, telemetry::Telemetry}}, hardware::{interface::Hal, peripheral::Peripherals, subsystem::Subsystems}};
+use crate::{control::{estimator::Estimators, regulator::Regulators}, data::{condition::ConfigBundle, transport::{communication::Communication, telemetry::Telemetry}}, hardware::{interface::Hal, peripheral::Peripherals, subsystem::Subsystems}, platform::{F, subsystem::propulsion::NUM_THRUSTERS}};
 
 pub struct Robot<H: Hal> {
     communication: Communication,
@@ -27,9 +27,21 @@ impl<H: Hal> Robot<H> {
     }
 
     pub fn run(&mut self) {
-        self.estimators.odometry.apply_linear_acceleration(Vector3::new(1.0, 0.0, 0.0), 0.1);
+        // Temporary: sine wave thrust test (~5 second period)
+        let elapsed = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs_f64();
+        let phase = (elapsed % (2.0 * std::f64::consts::PI * 5.0)) as f32;
+        let thrust = (phase / 5.0).sin() * 0.5 + 0.5;
+        let commanded = [thrust; NUM_THRUSTERS];
+        self.regulators.propulsion.thruster.update(&commanded, 0.1);
+
+        /*
+        self.estimators.odometry.apply_linear_acceleration(Vector3::new(1.0, 0.0, 0.0), 0.001);
         self.estimators.odometry.update_angular_velocity(Vector3::new(1.0, 1.0, 0.0));
         self.estimators.odometry.update(0.01);
+        */
 
         /*
         self.regulators.propulsion.velocity.set_setpoint();
@@ -41,6 +53,8 @@ impl<H: Hal> Robot<H> {
         */
 
         //self.regulators.propulsion.velocity.set_setpoint(Vector3::new(1.0, 0.0, 0.0));
+
+
         while let Some(message) = self.telemetry.receive() {
             let bytes = bincode::serialize(&message).unwrap();
             self.communication.telemetry.send(&bytes).expect("Failed something");

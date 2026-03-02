@@ -19,7 +19,7 @@ pub enum SceneTransition {
 }
 
 pub trait Scene {
-    fn init(&mut self, window: &mut Window);
+    fn init(&mut self, window: &mut Window, robot: &RobotCondition);
 
     fn update_ui(&mut self, ctx: &Context, robot: &RobotCondition) -> SceneTransition;
 

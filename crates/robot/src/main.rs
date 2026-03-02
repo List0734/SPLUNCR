@@ -18,6 +18,6 @@ fn main() {
     loop {
         robot.run();
 
-        thread::sleep(Duration::from_millis(100));
+        thread::sleep(Duration::from_millis(1));
     }
 }

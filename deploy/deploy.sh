@@ -23,4 +23,3 @@ chmod +x /home/user/robot
 doas rc-service robot start
 EOF
 
-cargo run -p station --release

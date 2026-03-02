@@ -37,11 +37,9 @@ impl<H: Hal> Robot<H> {
         let commanded = [thrust; NUM_THRUSTERS];
         self.regulators.propulsion.thruster.update(&commanded, 0.1);
 
-        /*
-        self.estimators.odometry.apply_linear_acceleration(Vector3::new(1.0, 0.0, 0.0), 0.001);
-        self.estimators.odometry.update_angular_velocity(Vector3::new(1.0, 1.0, 0.0));
+        //self.estimators.odometry.apply_linear_acceleration(Vector3::new(1.0, 0.0, 0.0), 0.001);
+        self.estimators.odometry.update_angular_velocity(Vector3::new(1.0, 0.0, 0.0));
         self.estimators.odometry.update(0.01);
-        */
 
         /*
         self.regulators.propulsion.velocity.set_setpoint();

@@ -1,14 +1,16 @@
-use kiss3d::light::Light;
-use kiss3d::window::Window;
-use kiss3d::camera::ArcBall;
-use nalgebra::{Point3, UnitQuaternion};
-use station::{Gui, gui::scene::{CubeScene, Scene}};
+use std::sync::{Arc, Mutex};
+
+use robot::data::condition::{ConfigBundle, RobotCondition};
+use station::Station;
 
 #[kiss3d::main]
 async fn main() {
-    let initial_scene = CubeScene::new();
-    let mut gui = Gui::new(initial_scene);
+    let config = ConfigBundle::load(concat!(env!("CARGO_MANIFEST_DIR"), "/../robot/config.toml"));
+    let condition = Arc::new(Mutex::new(RobotCondition::default(config)));
 
-    // Run GUI main loop (camera is now fully owned by Gui)
-    //gui.run().await;
+    let mut station = Station::new(condition);
+
+    loop {
+        station.run().await;
+    }
 }

@@ -1,3 +1,5 @@
+use nalgebra::Vector3;
+
 use crate::{control::{estimator::Estimators, regulator::Regulators}, data::{condition::ConfigBundle, transport::{communication::Communication, telemetry::Telemetry}}, hardware::{interface::Hal, peripheral::Peripherals, subsystem::Subsystems}};
 
 pub struct Robot<H: Hal> {
@@ -25,9 +27,9 @@ impl<H: Hal> Robot<H> {
     }
 
     pub fn run(&mut self) {
-        //self.estimators.odometry.apply_linear_acceleration(Vector3::new(1.0, 0.0, 0.0), 0.1);
-        //self.estimators.odometry.update_angular_velocity(Vector3::new(1.0, 1.0, 0.0));
-        //self.estimators.odometry.update(0.01);
+        self.estimators.odometry.apply_linear_acceleration(Vector3::new(1.0, 0.0, 0.0), 0.1);
+        self.estimators.odometry.update_angular_velocity(Vector3::new(1.0, 1.0, 0.0));
+        self.estimators.odometry.update(0.01);
 
         /*
         self.regulators.propulsion.velocity.set_setpoint();

@@ -6,9 +6,9 @@ TARGET=aarch64-unknown-linux-musl
 ROBOT_HOST=user@192.168.100.1
 BIN=robot
 
-cross build -p robot --release --target $TARGET
+CARGO_TARGET_DIR="$SCRIPT_DIR/../target/cross" cross build -p robot --release --target $TARGET
 
-scp "$SCRIPT_DIR/../target/$TARGET/release/$BIN" "$ROBOT_HOST:/home/user/robot.new"
+scp "$SCRIPT_DIR/../target/cross/$TARGET/release/$BIN" "$ROBOT_HOST:/home/user/robot.new"
 scp "$SCRIPT_DIR/../crates/robot/config.toml" "$ROBOT_HOST:/home/user/config.toml"
 
 ssh -t "$ROBOT_HOST" << 'EOF' 2>&1 | grep -v "Pseudo-terminal will not be allocated"

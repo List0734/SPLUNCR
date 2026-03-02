@@ -12,7 +12,7 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn new() -> Self {
-        let config = ConfigBundle::load("../robot/config.toml");
+        let config = ConfigBundle::load(concat!(env!("CARGO_MANIFEST_DIR"), "/../robot/config.toml"));
 
         let robot = Arc::new(Mutex::new(Robot::new(config.clone(), SimHal::init())));
 

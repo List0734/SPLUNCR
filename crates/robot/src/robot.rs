@@ -45,7 +45,7 @@ impl<H: Hal> Robot<H> {
             .as_secs_f64();
 
         let phase = (elapsed % (2.0 * std::f64::consts::PI * 5.0)) as f32;
-        let thrust = (phase / 5.0).sin() * 0.5 + 0.5;
+        let thrust = (phase / 5.0).sin();
         let scaled_thrust = 0.20 * thrust;
         let commanded = [scaled_thrust; NUM_THRUSTERS];
         let outputs = self.regulators.propulsion.thruster.update(&commanded, 0.01);

@@ -1,7 +1,7 @@
 use crate::platform::F;
 
 pub trait Motor {
-    type Error;
+    type Error: std::fmt::Debug;
 
     fn init(&mut self) -> Result<(), Self::Error>;
 

@@ -5,9 +5,9 @@ use rppal::gpio::{Gpio, OutputPin};
 use crate::{hardware::interface::motor::Motor, platform::F};
 
 const PERIOD: Duration = Duration::from_micros(20_000); // 50 Hz
-const NEUTRAL: Duration = Duration::from_micros(1500);
-const MIN_PULSE: Duration = Duration::from_micros(1100); // full reverse
-const MAX_PULSE: Duration = Duration::from_micros(1900); // full forward
+const NEUTRAL: Duration = Duration::from_micros(1480); // 7.4% duty cycle
+const MIN_PULSE: Duration = Duration::from_micros(1000); // 5% duty cycle, full reverse
+const MAX_PULSE: Duration = Duration::from_micros(2000); // 10% duty cycle, full forward
 
 pub struct ZmrEsc {
     pin: OutputPin,

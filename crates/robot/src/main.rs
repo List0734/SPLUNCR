@@ -15,9 +15,12 @@ fn main() {
 
     let mut robot = Robot::new(config, RpiHal::init());
 
+    robot.init_motors();
+    thread::sleep(Duration::from_millis(3000));
+
     loop {
         robot.run();
 
-        thread::sleep(Duration::from_millis(1));
+        thread::sleep(Duration::from_millis(10));
     }
 }

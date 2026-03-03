@@ -1,6 +1,8 @@
+use std::{thread, time::Duration};
+
 use nalgebra::Vector3;
 
-use crate::{control::{estimator::Estimators, regulator::Regulators}, data::{condition::ConfigBundle, transport::{communication::Communication, telemetry::Telemetry}}, hardware::{interface::Hal, peripheral::Peripherals, subsystem::Subsystems}, platform::{F, subsystem::propulsion::NUM_THRUSTERS}};
+use crate::{control::{estimator::Estimators, regulator::Regulators}, data::{condition::ConfigBundle, transport::{communication::Communication, telemetry::Telemetry}}, hardware::{interface::{Hal, motor::Motor}, peripheral::Peripherals, subsystem::Subsystems}, platform::{F, subsystem::propulsion::NUM_THRUSTERS}};
 
 pub struct Robot<H: Hal> {
     communication: Communication,
@@ -26,20 +28,34 @@ impl<H: Hal> Robot<H> {
         }
     }
 
+    pub fn init_motors(&mut self) {
+        let commanded = [0.0; NUM_THRUSTERS];
+        let outputs = self.regulators.propulsion.thruster.update(&commanded, 0.01);
+        for (motor, &duty) in self.peripherals.motors.iter_mut().zip(outputs.iter()) {
+            motor.set_duty_cycle(duty).expect("Failed to set motor duty cycle");
+        }
+    }
+
     pub fn run(&mut self) {
+
         // Temporary: sine wave thrust test (~5 second period)
         let elapsed = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_secs_f64();
+
         let phase = (elapsed % (2.0 * std::f64::consts::PI * 5.0)) as f32;
         let thrust = (phase / 5.0).sin() * 0.5 + 0.5;
-        let commanded = [thrust; NUM_THRUSTERS];
-        self.regulators.propulsion.thruster.update(&commanded, 0.1);
+        let scaled_thrust = 0.20 * thrust;
+        let commanded = [scaled_thrust; NUM_THRUSTERS];
+        let outputs = self.regulators.propulsion.thruster.update(&commanded, 0.01);
+        for (motor, &duty) in self.peripherals.motors.iter_mut().zip(outputs.iter()) {
+            motor.set_duty_cycle(duty).expect("Failed to set motor duty cycle");
+        }
 
         //self.estimators.odometry.apply_linear_acceleration(Vector3::new(1.0, 0.0, 0.0), 0.001);
-        self.estimators.odometry.update_angular_velocity(Vector3::new(1.0, 0.0, 0.0));
-        self.estimators.odometry.update(0.01);
+        //self.estimators.odometry.update_angular_velocity(Vector3::new(1.0, 0.0, 0.0));
+        //self.estimators.odometry.update(0.01);
 
         /*
         self.regulators.propulsion.velocity.set_setpoint();

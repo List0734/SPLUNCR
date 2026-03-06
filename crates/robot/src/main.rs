@@ -1,4 +1,5 @@
 use robot::{Robot, data::condition::ConfigBundle, hardware::driver::RpiHal};
+use shared::data::config::load_config;
 use std::{env, thread, time::{Duration, SystemTime, UNIX_EPOCH}};
 
 fn main() {
@@ -6,12 +7,13 @@ fn main() {
     let since_epoch = now.duration_since(UNIX_EPOCH).expect("Time went backwards");
     println!("Program started at {}", since_epoch.as_secs());
 
-    let mut exe_path = env::current_exe().expect("cannot get exe path");
-    exe_path.pop();
-    exe_path.push("config.toml");
+    let mut config_path = env::current_exe().expect("cannot get exe path");
+    config_path.pop();
+    config_path.push("config.toml");
 
-    let config = ConfigBundle::load(&exe_path);
-    println!("Configuration loaded from {:?}", exe_path);
+    let config_path_str = config_path.to_str().expect("invalid config path");
+    let config: ConfigBundle = load_config(config_path_str);
+    println!("Configuration loaded from {:?}", config_path);
 
     let mut robot = Robot::new(config, RpiHal::init());
 

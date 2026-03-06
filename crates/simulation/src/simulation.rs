@@ -1,8 +1,9 @@
 use std::{sync::{Arc, Mutex}, thread::{self, sleep}, time::Duration};
 
 use robot::{Robot, data::condition::{ConfigBundle, RobotCondition}};
-use station::Station;
+use station::{Station, data::config::StationConfig};
 
+use crate::data::config::SimConfig;
 use crate::hal::{SimHal, SimMotor};
 
 pub struct Simulation {
@@ -11,13 +12,17 @@ pub struct Simulation {
 }
 
 impl Simulation {
-    pub fn new() -> Self {
-        let config = ConfigBundle::load(concat!(env!("CARGO_MANIFEST_DIR"), "/../robot/config.toml"));
+    pub fn new(mut robot_config: ConfigBundle, sim_config: SimConfig) -> Self {
+        robot_config.communication = sim_config.communication.robot;
 
-        let robot = Arc::new(Mutex::new(Robot::new(config.clone(), SimHal::init())));
+        let station_config = StationConfig {
+            communication: sim_config.communication.station,
+        };
 
-        let condition = Arc::new(Mutex::new(RobotCondition::default(config)));
-        let station = Station::new(condition);
+        let robot = Arc::new(Mutex::new(Robot::new(robot_config.clone(), SimHal::init())));
+
+        let condition = Arc::new(Mutex::new(RobotCondition::default(robot_config)));
+        let station = Station::new(condition, station_config);
 
         Self { robot, station }
     }

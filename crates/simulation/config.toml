@@ -1,0 +1,12 @@
+[environment]
+water_temperature = 15.0
+
+[communication.robot.command]
+listen_address = "127.0.0.1:9000"
+
+[communication.robot.telemetry]
+target_address = "127.0.0.1:9001"
+bind_address = "0.0.0.0:0"
+
+[communication.station.telemetry]
+listen_address = "127.0.0.1:9001"

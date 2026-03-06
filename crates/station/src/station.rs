@@ -4,7 +4,7 @@ use crossbeam::channel::Receiver;
 use robot::data::{condition::RobotCondition, transport::telemetry::state::State};
 use shared::data::transport::message::Message;
 
-use crate::{Gui, data::transport::{communication::{self, Communication}, telemetry::Mapper}, gui::scene::{ConnectingScene, CubeScene, Scene, StationaryScene}};
+use crate::{Gui, data::{config::StationConfig, transport::{communication::{self, Communication}, telemetry::Mapper}}, gui::scene::{ConnectingScene, CubeScene, Scene, StationaryScene}};
 
 pub struct Station {
     robot: Arc<Mutex<RobotCondition>>,
@@ -13,12 +13,13 @@ pub struct Station {
 }
 
 impl Station {
-    pub fn new(condition: Arc<Mutex<RobotCondition>>) -> Self {
+    pub fn new(condition: Arc<Mutex<RobotCondition>>, config: StationConfig) -> Self {
         let initial_scene = ConnectingScene::new();
         let robot_snapshot = condition.lock().unwrap().clone();
         let gui = Gui::new(initial_scene, &robot_snapshot);
 
-        let communication = Arc::new(Communication::new("0.0.0.0:9001").expect("Error Opening Port"));
+        let listen_address = &config.communication.telemetry.listen_address;
+        let communication = Arc::new(Communication::new(listen_address).expect("Error Opening Port"));
         communication.spawn_telemetry_receiver(Arc::clone(&condition));
 
         Self {

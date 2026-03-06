@@ -1,7 +1,9 @@
-[communication]
-command_listen_addr = "0.0.0.0:9000"
-telemetry_target_addr = "192.168.100.2:9001"
-telemetry_bind_addr = "0.0.0.0:0"
+[communication.command]
+listen_address = "0.0.0.0:9000"
+
+[communication.telemetry]
+target_address = "192.168.100.2:9001"
+bind_address = "0.0.0.0:0"
 
 [[subsystem.propulsion.thrusters]]
 id = 1

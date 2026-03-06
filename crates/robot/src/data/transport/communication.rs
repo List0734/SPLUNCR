@@ -13,7 +13,7 @@ pub struct Communication {
 impl Communication {
     pub fn new(config: CommunicationConfig) -> io::Result<Self> {
         Ok(Self {
-            telemetry: Udp::new(&config.telemetry_bind_addr, &config.telemetry_target_addr)?,
+            telemetry: Udp::new(&config.telemetry.bind_address, &config.telemetry.target_address)?,
         })
     }
 

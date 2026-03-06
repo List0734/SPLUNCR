@@ -8,6 +8,7 @@ const PERIOD: Duration = Duration::from_micros(20_000); // 50 Hz
 const NEUTRAL: Duration = Duration::from_micros(1480); // 7.4% duty cycle
 const MIN_PULSE: Duration = Duration::from_micros(1000); // 5% duty cycle, full reverse
 const MAX_PULSE: Duration = Duration::from_micros(2000); // 10% duty cycle, full forward
+const DEADBAND: F = 0.0125;
 
 pub struct ZmrEsc {
     pin: OutputPin,
@@ -25,7 +26,14 @@ impl ZmrEsc {
 
     fn duty_cycle_to_pulse_width(duty_cycle: F) -> Duration {
         let clamped = duty_cycle.clamp(-1.0, 1.0);
-        let half_range = (MAX_PULSE.as_micros() - NEUTRAL.as_micros()) as F;
+        if clamped.abs() < DEADBAND {
+            return NEUTRAL;
+        }
+        let half_range = if clamped > 0.0 {
+            (MAX_PULSE.as_micros() - NEUTRAL.as_micros()) as F
+        } else {
+            (NEUTRAL.as_micros() - MIN_PULSE.as_micros()) as F
+        };
         let us = NEUTRAL.as_micros() as F + clamped * half_range;
         Duration::from_micros(us as u64)
     }

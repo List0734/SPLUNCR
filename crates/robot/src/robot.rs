@@ -53,6 +53,29 @@ impl<H: Hal> Robot<H> {
             motor.set_duty_cycle(duty).expect("Failed to set motor duty cycle");
         }
 
+        /*
+        let commanded = [1.0; NUM_THRUSTERS];
+        for (motor, &duty) in self.peripherals.motors.iter_mut().zip(commanded.iter()) {
+            motor.set_duty_cycle(duty).expect("Failed to set motor duty cycle");
+        }
+
+        thread::sleep(Duration::from_millis(5000));
+
+        let commanded = [-1.0; NUM_THRUSTERS];
+        for (motor, &duty) in self.peripherals.motors.iter_mut().zip(commanded.iter()) {
+            motor.set_duty_cycle(duty).expect("Failed to set motor duty cycle");
+        }
+
+        thread::sleep(Duration::from_millis(5000));
+
+        let commanded = [0.0; NUM_THRUSTERS];
+        for (motor, &duty) in self.peripherals.motors.iter_mut().zip(commanded.iter()) {
+            motor.set_duty_cycle(duty).expect("Failed to set motor duty cycle");
+        }
+        
+        thread::sleep(Duration::from_millis(5000));
+        */
+
         //self.estimators.odometry.apply_linear_acceleration(Vector3::new(1.0, 0.0, 0.0), 0.001);
         //self.estimators.odometry.update_angular_velocity(Vector3::new(1.0, 0.0, 0.0));
         //self.estimators.odometry.update(0.01);

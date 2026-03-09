@@ -1,35 +1,44 @@
 use std::sync::{Arc, Mutex};
 
-use crossbeam::channel::Receiver;
-use robot::data::{condition::RobotCondition, transport::telemetry::state::State};
-use shared::data::transport::message::Message;
+use robot::data::condition::RobotCondition;
 
-use crate::{Gui, data::{config::StationConfig, transport::{communication::{self, Communication}, telemetry::Mapper}}, gui::scene::{ConnectingScene, CubeScene, Scene, StationaryScene}};
+use crate::{Gui, data::{config::StationConfig, transport::{command::Commands, communication::Communication}}, gui::scene::ConnectingScene};
 
 pub struct Station {
     robot: Arc<Mutex<RobotCondition>>,
     gui: Gui,
+    commands: Commands,
     communication: Arc<Communication>,
 }
 
 impl Station {
     pub fn new(condition: Arc<Mutex<RobotCondition>>, config: StationConfig) -> Self {
-        let initial_scene = ConnectingScene::new();
+        let communication = Arc::new(
+            Communication::new(config.communication).expect("Error Opening Port")
+        );
+        communication.spawn_telemetry_receiver(Arc::clone(&condition));
+        communication.spawn_command_connector();
+
+        let commands = Commands::new();
+
+        let initial_scene = ConnectingScene::new(Arc::clone(&communication));
         let robot_snapshot = condition.lock().unwrap().clone();
         let gui = Gui::new(initial_scene, &robot_snapshot);
-
-        let listen_address = &config.communication.telemetry.listen_address;
-        let communication = Arc::new(Communication::new(listen_address).expect("Error Opening Port"));
-        communication.spawn_telemetry_receiver(Arc::clone(&condition));
 
         Self {
             robot: condition,
             gui,
+            commands,
             communication,
         }
     }
-    
+
     pub async fn run(&mut self) {
+        while let Some(message) = self.commands.receive() {
+            let bytes = bincode::serialize(&message).unwrap();
+            let _ = self.communication.send_command(&bytes);
+        }
+
         self.gui.run(Arc::clone(&self.robot)).await;
     }
 }

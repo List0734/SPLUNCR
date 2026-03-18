@@ -1,6 +1,7 @@
 use std::{
-    io::{self, Write},
+    io::{self, Read, Write},
     net::TcpStream,
+    time::Duration,
 };
 
 pub struct Tcp {
@@ -20,5 +21,14 @@ impl Tcp {
         self.stream.write_all(&len)?;
         self.stream.write_all(data)?;
         Ok(())
+    }
+
+    pub fn receive_exact(&mut self, buf: &mut [u8], timeout: Duration) -> io::Result<()> {
+        self.stream.set_nonblocking(false)?;
+        self.stream.set_read_timeout(Some(timeout))?;
+        let result = self.stream.read_exact(buf);
+        self.stream.set_read_timeout(None)?;
+        self.stream.set_nonblocking(true)?;
+        result
     }
 }

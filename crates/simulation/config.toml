@@ -8,8 +8,15 @@ listen_address = "127.0.0.1:9000"
 target_address = "127.0.0.1:9001"
 bind_address = "0.0.0.0:0"
 
+[communication.robot.video]
+target_address = "127.0.0.1:9002"
+bind_address = "0.0.0.0:0"
+
 [communication.station.command]
 target_address = "127.0.0.1:9000"
 
 [communication.station.telemetry]
 listen_address = "127.0.0.1:9001"
+
+[communication.station.video]
+listen_address = "127.0.0.1:9002"

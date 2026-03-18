@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-use kiss3d::{camera::{ArcBall, Camera}, window::Window};
-use nalgebra::UnitQuaternion;
-use egui::{Context, Ui};
+use std::sync::{Arc, Mutex};
+
+use kiss3d::{camera::ArcBall, window::Window};
+use egui::Context;
 
 mod cube;
 pub use cube::CubeScene;
@@ -13,6 +13,8 @@ pub use stationary::StationaryScene;
 mod connecting;
 pub use connecting::ConnectingScene;
 
+use crate::data::transport::communication::VideoFrame;
+
 pub enum SceneTransition {
     None,
     Switch(Box<dyn Scene>),
@@ -21,9 +23,9 @@ pub enum SceneTransition {
 pub trait Scene {
     fn init(&mut self, window: &mut Window, robot: &RobotCondition);
 
-    fn update_ui(&mut self, ctx: &Context, robot: &RobotCondition) -> SceneTransition;
+    fn update_ui(&mut self, ctx: &Context, robot: &RobotCondition, video: &Arc<Mutex<Option<VideoFrame>>>) -> SceneTransition;
 
     fn update_3d(&mut self, window: &mut Window, robot: &RobotCondition) -> SceneTransition;
-    
+
     fn camera(&mut self) -> &mut ArcBall;
 }

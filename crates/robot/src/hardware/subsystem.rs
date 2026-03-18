@@ -1,6 +1,8 @@
 pub mod propulsion;
+pub mod vision;
 
 pub use propulsion::PropulsionSubsystem;
+pub use vision::VisionSubsystem;
 
 use crate::data::condition::config::SubsystemConfig;
 

@@ -1,8 +1,9 @@
-use std::{thread, time::Duration};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use nalgebra::Vector3;
+use shared::data::transport::message::Message;
 
-use crate::{control::{estimator::Estimators, regulator::Regulators}, data::{condition::ConfigBundle, transport::{communication::Communication, telemetry::Telemetry}}, hardware::{interface::{Hal, motor::Motor}, peripheral::Peripherals, subsystem::Subsystems}, platform::{F, subsystem::propulsion::NUM_THRUSTERS}};
+use crate::{control::{estimator::Estimators, regulator::Regulators}, data::{condition::ConfigBundle, transport::{communication::{Communication, command::{Command, CommandPayload}}, telemetry::Telemetry}}, hardware::{interface::{Hal, motor::Motor}, peripheral::Peripherals, subsystem::Subsystems}, platform::{F, subsystem::propulsion::NUM_THRUSTERS}};
 
 pub struct Robot<H: Hal> {
     communication: Communication,
@@ -37,6 +38,37 @@ impl<H: Hal> Robot<H> {
     }
 
     pub fn run(&mut self) {
+        let mut cmd_buf = [0u8; 1024];
+        while let Ok(Some(n)) = self.communication.commands.try_receive(&mut cmd_buf) {
+            let Ok(msg) = bincode::deserialize::<Message<Command>>(&cmd_buf[..n]) else {
+                eprintln!("Ignored malformed command ({n} bytes)");
+                continue;
+            };
+            match msg.payload {
+                CommandPayload::Ping => {
+                    let t2 = SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap()
+                        .as_micros() as u64;
+                    let mut pong = [0u8; 16];
+                    pong[0..8].copy_from_slice(&msg.timestamp.to_be_bytes());
+                    pong[8..16].copy_from_slice(&t2.to_be_bytes());
+                    let _ = self.communication.commands.send(&pong);
+                }
+                CommandPayload::SetClock(ts_us) => {
+                    let secs = (ts_us / 1_000_000) as i64;
+                    let nsecs = ((ts_us % 1_000_000) * 1000) as i64;
+                    let ts = libc::timespec { tv_sec: secs, tv_nsec: nsecs };
+                    let ret = unsafe { libc::clock_settime(libc::CLOCK_REALTIME, &ts) };
+                    if ret == 0 {
+                        println!("Clock set to {secs}.{:06}", ts_us % 1_000_000);
+                    } else {
+                        eprintln!("Failed to set clock: {}", std::io::Error::last_os_error());
+                    }
+                }
+                _ => {}
+            }
+        }
 
         // Temporary: sine wave thrust test (~5 second period)
         let elapsed = std::time::SystemTime::now()

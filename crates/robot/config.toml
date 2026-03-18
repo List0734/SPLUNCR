@@ -5,6 +5,15 @@ listen_address = "0.0.0.0:9000"
 target_address = "192.168.100.2:9001"
 bind_address = "0.0.0.0:0"
 
+[communication.video]
+target_address = "192.168.100.2:9002"
+bind_address = "0.0.0.0:0"
+
+[subsystem.vision.camera]
+device = "/dev/video0"
+width = 1280
+height = 720
+
 [[subsystem.propulsion.thrusters]]
 id = 1
 placement.position = [ 1.0,  1.0,  1.0]

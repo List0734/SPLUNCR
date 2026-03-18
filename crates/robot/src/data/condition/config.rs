@@ -6,7 +6,7 @@ pub use subsystem::SubsystemConfig;
 pub use regulator::RegulatorConfig;
 
 mod communication;
-pub use communication::CommunicationConfig;
+pub use communication::{CommunicationConfig, VideoConfig};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ConfigBundle {

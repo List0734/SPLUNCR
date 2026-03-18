@@ -1,4 +1,4 @@
-use robot::{Robot, data::condition::ConfigBundle, hardware::driver::RpiHal};
+use robot::{Robot, data::condition::ConfigBundle, hardware::{driver::RpiHal, subsystem::VisionSubsystem}};
 use shared::data::config::load_config;
 use std::{env, thread, time::{Duration, SystemTime, UNIX_EPOCH}};
 
@@ -14,6 +14,19 @@ fn main() {
     let config_path_str = config_path.to_str().expect("invalid config path");
     let config: ConfigBundle = load_config(config_path_str);
     println!("Configuration loaded from {:?}", config_path);
+
+    let mut vision = VisionSubsystem::new(
+        config.subsystem.vision.camera.clone(),
+        config.communication.video.clone(),
+    );
+    thread::spawn(move || {
+        loop {
+            if let Err(e) = vision.capture_and_send() {
+                eprintln!("Vision error: {}", e);
+                thread::sleep(Duration::from_secs(1));
+            }
+        }
+    });
 
     let mut robot = Robot::new(config, RpiHal::init());
 

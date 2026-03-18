@@ -3,3 +3,6 @@ target_address = "192.168.100.1:9000"
 
 [communication.telemetry]
 listen_address = "0.0.0.0:9001"
+
+[communication.video]
+listen_address = "0.0.0.0:9002"

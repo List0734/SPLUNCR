@@ -18,12 +18,14 @@ impl Station {
         );
         communication.spawn_telemetry_receiver(Arc::clone(&condition));
         communication.spawn_command_connector();
+        communication.spawn_video_receiver();
 
         let commands = Commands::new();
+        let video = communication.video_frame();
 
         let initial_scene = ConnectingScene::new(Arc::clone(&communication));
         let robot_snapshot = condition.lock().unwrap().clone();
-        let gui = Gui::new(initial_scene, &robot_snapshot);
+        let gui = Gui::new(initial_scene, &robot_snapshot, video);
 
         Self {
             robot: condition,

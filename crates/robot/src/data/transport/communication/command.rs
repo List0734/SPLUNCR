@@ -9,4 +9,6 @@ pub type Command = CommandPayload;
 #[derive(Debug, Serialize, Deserialize)]
 pub enum CommandPayload {
     Velocity(Twist<F>),
+    Ping,
+    SetClock(u64),
 }

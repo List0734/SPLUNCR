@@ -1,9 +1,11 @@
-use egui::{Context, Ui};
+use std::sync::{Arc, Mutex};
+
+use egui::Context;
 use kiss3d::{camera::ArcBall, scene::SceneNode, window::Window};
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 use robot::data::condition::RobotCondition;
 
-use crate::gui::scene::{Scene, SceneTransition};
+use crate::{data::transport::communication::VideoFrame, gui::scene::{Scene, SceneTransition}};
 
 pub struct CubeScene {
     camera: ArcBall,
@@ -45,7 +47,7 @@ impl Scene for CubeScene {
         }
     }
 
-    fn update_ui(&mut self, ctx: &Context, _robot: &RobotCondition) -> SceneTransition {
+    fn update_ui(&mut self, ctx: &Context, _robot: &RobotCondition, _video: &Arc<Mutex<Option<VideoFrame>>>) -> SceneTransition {
         egui::Window::new("Transform Controls")
             .resizable(false)
             .collapsible(false)

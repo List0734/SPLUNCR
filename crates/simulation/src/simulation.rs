@@ -1,6 +1,6 @@
 use std::{sync::{Arc, Mutex}, thread::{self, sleep}, time::Duration};
 
-use robot::{Robot, data::condition::{ConfigBundle, RobotCondition}};
+use robot::{Robot, data::condition::{ConfigBundle, RobotCondition}, hardware::subsystem::VisionSubsystem};
 use station::{Station, data::config::StationConfig};
 
 use crate::data::config::SimConfig;
@@ -18,6 +18,18 @@ impl Simulation {
         let station_config = StationConfig {
             communication: sim_config.communication.station,
         };
+
+        let mut vision = VisionSubsystem::new(
+            robot_config.subsystem.vision.camera.clone(),
+            robot_config.communication.video.clone(),
+        );
+        thread::spawn(move || {
+            loop {
+                if let Err(e) = vision.capture_and_send() {
+                    eprintln!("Vision error: {}", e);
+                }
+            }
+        });
 
         let robot = Arc::new(Mutex::new(Robot::new(robot_config.clone(), SimHal::init())));
 

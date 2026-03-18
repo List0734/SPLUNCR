@@ -9,7 +9,7 @@ use robot::data::{condition::RobotCondition, transport::telemetry::state::State}
 use scene::Scene;
 use shared::data::transport::message::Message;
 
-use crate::{data::transport::telemetry::Mapper, gui::scene::SceneTransition};
+use crate::{data::transport::{communication::VideoFrame, telemetry::Mapper}, gui::scene::SceneTransition};
 
 pub mod objects;
 pub mod screens;
@@ -17,16 +17,18 @@ pub mod screens;
 pub struct Gui {
     window: Window,
     pub active_scene: Box<dyn Scene>,
+    video: Arc<Mutex<Option<VideoFrame>>>,
 }
 
 impl Gui {
-    pub fn new<S: Scene + 'static>(initial_scene: S, robot: &RobotCondition) -> Self {
+    pub fn new<S: Scene + 'static>(initial_scene: S, robot: &RobotCondition, video: Arc<Mutex<Option<VideoFrame>>>) -> Self {
         let mut window = Window::new("Station");
         window.set_light(Light::StickToCamera);
 
         let mut gui = Self {
             window,
             active_scene: Box::new(initial_scene),
+            video,
         };
 
         gui.active_scene.init(&mut gui.window, robot);
@@ -40,8 +42,9 @@ impl Gui {
 
             // Draw UI
             let mut ui_transition = SceneTransition::None;
+            let video = &self.video;
             self.window.draw_ui(|ctx| {
-               ui_transition = self.active_scene.update_ui(ctx, &robot_snapshot);
+               ui_transition = self.active_scene.update_ui(ctx, &robot_snapshot, video);
             });
 
             // Update 3D

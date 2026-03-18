@@ -1,11 +1,11 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use egui::Context;
 use kiss3d::{camera::ArcBall, window::Window};
 use nalgebra::{Point3, Vector3};
 use robot::data::condition::RobotCondition;
 
-use crate::{data::transport::communication::Communication, gui::scene::{StationaryScene, Scene, SceneTransition}};
+use crate::{data::transport::communication::{Communication, VideoFrame}, gui::scene::{StationaryScene, Scene, SceneTransition}};
 
 pub struct ConnectingScene {
     camera: ArcBall,
@@ -27,7 +27,7 @@ impl ConnectingScene {
 impl Scene for ConnectingScene {
     fn init(&mut self, _window: &mut Window, _robot: &RobotCondition) {}
 
-    fn update_ui(&mut self, ctx: &Context, _robot: &RobotCondition) -> SceneTransition {
+    fn update_ui(&mut self, ctx: &Context, _robot: &RobotCondition, _video: &Arc<Mutex<Option<VideoFrame>>>) -> SceneTransition {
         if self.communication.is_connected() {
             return SceneTransition::Switch(Box::new(StationaryScene::new()));
         }

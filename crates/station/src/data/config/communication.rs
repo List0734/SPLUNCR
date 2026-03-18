@@ -1,7 +1,9 @@
 mod command;
 mod telemetry;
+mod video;
 pub use command::StationCommandConfig;
 pub use telemetry::StationTelemetryConfig;
+pub use video::StationVideoConfig;
 
 use serde::{Deserialize, Serialize};
 
@@ -9,4 +11,5 @@ use serde::{Deserialize, Serialize};
 pub struct StationCommunicationConfig {
     pub command: StationCommandConfig,
     pub telemetry: StationTelemetryConfig,
+    pub video: StationVideoConfig,
 }

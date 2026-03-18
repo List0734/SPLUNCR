@@ -1,5 +1,5 @@
 use std::{
-    io::{self, Read},
+    io::{self, Read, Write},
     net::{TcpListener, TcpStream},
 };
 
@@ -52,6 +52,16 @@ impl Tcp {
                 self.stream = None;
                 Err(e)
             }
+        }
+    }
+
+    pub fn send(&mut self, data: &[u8]) -> io::Result<()> {
+        if let Some(stream) = &mut self.stream {
+            stream.write_all(data)?;
+            stream.flush()?;
+            Ok(())
+        } else {
+            Err(io::Error::new(io::ErrorKind::NotConnected, "no client connected"))
         }
     }
 }

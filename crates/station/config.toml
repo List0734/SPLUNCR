@@ -11,3 +11,7 @@ listen_address = "0.0.0.0:9002"
 
 [communication]
 poll_rate_hz = 1000
+
+[controller]
+poll_rate_hz = 100
+deadband = 0.15

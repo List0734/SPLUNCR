@@ -11,8 +11,9 @@ rate_hz = 20
 
 [vision.camera]
 device = "/dev/video0"
-width = 1280
-height = 720
+width = 640
+height = 480
+framerate = 30
 
 [vision.stream]
 target_address = "192.168.100.2:9002"
@@ -21,53 +22,55 @@ bind_address = "0.0.0.0:0"
 [propulsion]
 loop_rate_hz = 100
 
+# Corner thrusters, angled 45 degrees inward
 [[propulsion.thrusters]]
 id = 1
 gpio_pin = 4
-placement.position = [ 1.0,  1.0,  1.0]
-placement.direction = [ 1.0,  1.0,  1.0]
+placement.position = [ 1.0,  1.0,  0.0]
+placement.direction = [ 0.707, -0.707,  0.0]
 
 [[propulsion.thrusters]]
 id = 2
 gpio_pin = 5
-placement.position = [ 1.0,  1.0, -1.0]
-placement.direction = [ 1.0,  1.0, -1.0]
+placement.position = [ 1.0, -1.0,  0.0]
+placement.direction = [ 0.707,  0.707,  0.0]
 
 [[propulsion.thrusters]]
 id = 3
 gpio_pin = 6
-placement.position = [ 1.0, -1.0,  1.0]
-placement.direction = [ 1.0, -1.0,  1.0]
+placement.position = [-1.0,  1.0,  0.0]
+placement.direction = [-0.707, -0.707,  0.0]
 
 [[propulsion.thrusters]]
 id = 4
 gpio_pin = 12
-placement.position = [ 1.0, -1.0, -1.0]
-placement.direction = [ 1.0, -1.0, -1.0]
+placement.position = [-1.0, -1.0,  0.0]
+placement.direction = [-0.707,  0.707,  0.0]
 
+# Vertical thrusters, 2 per side
 [[propulsion.thrusters]]
 id = 5
 gpio_pin = 13
-placement.position = [-1.0,  1.0,  1.0]
-placement.direction = [-1.0,  1.0,  1.0]
+placement.position = [ 0.33,  1.0,  0.0]
+placement.direction = [ 0.0,  0.0,  1.0]
 
 [[propulsion.thrusters]]
 id = 6
 gpio_pin = 16
-placement.position = [-1.0,  1.0, -1.0]
-placement.direction = [-1.0,  1.0, -1.0]
+placement.position = [-0.33,  1.0,  0.0]
+placement.direction = [ 0.0,  0.0,  1.0]
 
 [[propulsion.thrusters]]
 id = 7
 gpio_pin = 17
-placement.position = [-1.0, -1.0,  1.0]
-placement.direction = [-1.0, -1.0,  1.0]
+placement.position = [ 0.33, -1.0,  0.0]
+placement.direction = [ 0.0,  0.0,  1.0]
 
 [[propulsion.thrusters]]
 id = 8
 gpio_pin = 18
-placement.position = [-1.0, -1.0, -1.0]
-placement.direction = [-1.0, -1.0, -1.0]
+placement.position = [-0.33, -1.0,  0.0]
+placement.direction = [ 0.0,  0.0,  1.0]
 
 [propulsion.regulator.velocity.linear]
 surge = { kp = 1.0, ki = 0.0, kd = 0.1 }

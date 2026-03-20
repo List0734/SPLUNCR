@@ -10,6 +10,7 @@ pub struct Decoder {
 impl Decoder {
 	pub fn new() -> Self {
 		ffmpeg_next::init().expect("Failed to init ffmpeg");
+		ffmpeg_next::log::set_level(ffmpeg_next::log::Level::Fatal);
 		let codec = ffmpeg_next::codec::decoder::find(ffmpeg_next::codec::Id::MJPEG)
 			.expect("MJPEG codec not found");
 		let decoder = ffmpeg_next::codec::Context::new_with_codec(codec)

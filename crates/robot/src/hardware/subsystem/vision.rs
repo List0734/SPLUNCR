@@ -25,7 +25,9 @@ impl<C: Camera, D: Datagram> VisionSubsystem<C, D> {
 	}
 
 	pub fn capture_and_send(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+		let capture_start = Instant::now();
 		let frame = self.camera.capture().map_err(|e| format!("{e:?}"))?;
+		let capture_us = capture_start.elapsed().as_micros();
 
 		let timestamp_us = SystemTime::now()
 			.duration_since(UNIX_EPOCH)
@@ -34,6 +36,7 @@ impl<C: Camera, D: Datagram> VisionSubsystem<C, D> {
 
 		let total_fragments = ((frame.data.len() + CHUNK_SIZE - 1) / CHUNK_SIZE) as u16;
 
+		let send_start = Instant::now();
 		for (i, chunk) in frame.data.chunks(CHUNK_SIZE).enumerate() {
 			let mut packet = Vec::with_capacity(HEADER_SIZE + chunk.len());
 			packet.extend_from_slice(&self.frame_id.to_be_bytes());
@@ -45,14 +48,15 @@ impl<C: Camera, D: Datagram> VisionSubsystem<C, D> {
 			packet.extend_from_slice(chunk);
 			self.transport.send(&packet).map_err(|e| format!("{e:?}"))?;
 		}
+		let send_us = send_start.elapsed().as_micros();
 
 		self.frame_id = self.frame_id.wrapping_add(1);
 		self.fps_count += 1;
 		let elapsed = self.last_fps_print.elapsed();
 		if elapsed.as_secs() >= 5 {
 			let fps = self.fps_count as f64 / elapsed.as_secs_f64();
-			println!("Vision: {:.1} fps, {} bytes/frame, {} fragments",
-				fps, frame.data.len(), total_fragments);
+			println!("Vision: {:.1} fps, {} bytes/frame, {} fragments | capture: {}us, send: {}us",
+				fps, frame.data.len(), total_fragments, capture_us, send_us);
 			self.fps_count = 0;
 			self.last_fps_print = Instant::now();
 		}

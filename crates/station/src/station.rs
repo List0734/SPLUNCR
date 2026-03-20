@@ -6,8 +6,10 @@ use crate::data::config::StationConfig;
 use crate::service::Services;
 use crate::service::communication::CommunicationService;
 use crate::service::context::StationContext;
+use crate::service::controller::ControllerService;
 use crate::service::video::VideoService;
 use crate::subsystem::communication::Communication;
+use crate::subsystem::controller::Controller;
 use crate::subsystem::gui::Gui;
 use crate::subsystem::gui::scene::ConnectingScene;
 use crate::subsystem::video::Video;
@@ -48,10 +50,20 @@ impl Station {
 			config.communication.poll_rate_hz,
 		);
 
+		// Controller
+		let controller = Controller::new();
+		let controller_service = ControllerService::new(
+			context.clone(),
+			controller,
+			config.controller.poll_rate_hz,
+			config.controller.deadband,
+		);
+
 		// Services
 		let tasks: Vec<Box<dyn FnOnce() + Send>> = vec![
 			Box::new(move || communication_service.run()),
 			Box::new(move || video_service.run()),
+			Box::new(move || controller_service.run()),
 		];
 		let services = Services::launch(context.clone(), tasks);
 

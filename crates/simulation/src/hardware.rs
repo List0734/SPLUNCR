@@ -29,6 +29,7 @@ impl Hal for SimHal {
 			&config.vision.camera.device,
 			config.vision.camera.width,
 			config.vision.camera.height,
+			config.vision.camera.framerate,
 		);
 
 		let command_transport = TcpDriver::new(&config.communication.command.listen_address)
@@ -37,11 +38,13 @@ impl Hal for SimHal {
 		let telemetry_transport = UdpDriver::new(
 			&config.communication.telemetry.bind_address,
 			&config.communication.telemetry.target_address,
+			true,
 		).expect("failed to bind telemetry transport");
 
 		let video_transport = UdpDriver::new(
 			&config.vision.stream.bind_address,
 			&config.vision.stream.target_address,
+			false,
 		).expect("failed to bind video transport");
 
 		Peripherals {

@@ -1,5 +1,6 @@
 pub mod communication;
 pub mod context;
+pub mod controller;
 pub mod video;
 
 use std::sync::atomic::Ordering;

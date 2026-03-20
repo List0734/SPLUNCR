@@ -8,9 +8,9 @@ pub struct UdpDriver {
 }
 
 impl UdpDriver {
-	pub fn new(bind_addr: &str, target_addr: &str) -> io::Result<Self> {
+	pub fn new(bind_addr: &str, target_addr: &str, nonblocking: bool) -> io::Result<Self> {
 		let socket = UdpSocket::bind(bind_addr)?;
-		socket.set_nonblocking(true)?;
+		socket.set_nonblocking(nonblocking)?;
 
 		Ok(Self {
 			socket,

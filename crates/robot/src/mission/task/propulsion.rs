@@ -72,28 +72,29 @@ impl<M: Motor<F>> PropulsionTask<M> {
 			return;
 		}
 
-		match command {
+		let wrench = match command {
 			PropulsionCommand::Velocity(setpoint) => {
 				self.regulator.velocity.set_setpoint(setpoint);
+				let measured: Twist<F> = Twist {
+					linear: measured_twist.linear.cast(),
+					angular: measured_twist.angular.cast(),
+				};
+				let output = self.regulator.velocity.update(&measured, dt);
+				let mut state = self.context.state.write().unwrap();
+				state.action.propulsion.velocity = VelocityRegulatorState {
+					setpoint,
+					output,
+				};
+				Wrench { force: output.linear, torque: output.angular }
 			}
-		}
-
-		let measured: Twist<F> = Twist {
-			linear: measured_twist.linear.cast(),
-			angular: measured_twist.angular.cast(),
+			PropulsionCommand::OpenLoop(wrench) => wrench,
 		};
-		let velocity_output = self.regulator.velocity.update(&measured, dt);
-		let wrench = Wrench { force: velocity_output.linear, torque: velocity_output.angular };
 		let commanded = self.propulsion.allocate(wrench);
 		let outputs = self.regulator.thruster.update(&commanded, dt);
 		self.propulsion.set_duty_cycles(&outputs);
 
 		{
 			let mut state = self.context.state.write().unwrap();
-			state.action.propulsion.velocity = VelocityRegulatorState {
-				setpoint: self.regulator.velocity.setpoint(),
-				output: velocity_output,
-			};
 			state.action.propulsion.thruster.coast = CoastRegulatorState {
 				commanded,
 				output: outputs,

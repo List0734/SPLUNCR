@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use framework::physics::dynamics::Wrench;
 use framework::physics::kinematics::Twist;
 
 use crate::platform::F;
@@ -12,7 +13,7 @@ pub struct OperatorCommand {
 impl Default for OperatorCommand {
 	fn default() -> Self {
 		Self {
-			propulsion: PropulsionCommand::Velocity(Twist::zero()),
+			propulsion: PropulsionCommand::OpenLoop(Wrench::zero()),
 		}
 	}
 }
@@ -20,4 +21,5 @@ impl Default for OperatorCommand {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum PropulsionCommand {
 	Velocity(Twist<F>),
+	OpenLoop(Wrench<F>),
 }

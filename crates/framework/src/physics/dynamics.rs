@@ -1,16 +1,17 @@
 use nalgebra::{RealField, Vector3, Vector6};
+use serde::{Serialize, Deserialize};
 
 pub type Force<S> = S;
 
-#[derive(Clone, Copy, Debug)]
-pub struct Wrench<S> {
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct Wrench<S: RealField + Serialize + Copy> {
     pub force: Vector3<S>,
     pub torque: Vector3<S>,
 }
 
 impl<S> Wrench<S>
 where
-    S: RealField + Copy,
+    S: RealField + Serialize + Copy,
 {
     pub fn zero() -> Self {
         Self {

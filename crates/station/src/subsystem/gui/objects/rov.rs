@@ -60,7 +60,16 @@ impl RovObject {
             let t = thrust.abs().clamp(0.0, 1.0);
             let s = THRUSTER_CONE_SIZE * t;
             node.set_local_scale(s, s, s);
-            node.set_local_translation(Translation3::new(0.0, s / 2.0, 0.0));
+            if thrust >= 0.0 {
+                node.set_local_translation(Translation3::new(0.0, s / 2.0, 0.0));
+                node.set_local_rotation(UnitQuaternion::identity());
+            } else {
+                node.set_local_translation(Translation3::new(0.0, -s / 2.0, 0.0));
+                node.set_local_rotation(UnitQuaternion::from_axis_angle(
+                    &Vector3::x_axis(),
+                    std::f32::consts::PI,
+                ));
+            }
         }
 
         if let Some(node) = &mut self.body_node {

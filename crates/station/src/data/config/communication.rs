@@ -12,4 +12,5 @@ pub struct StationCommunicationConfig {
     pub command: StationCommandConfig,
     pub telemetry: StationTelemetryConfig,
     pub video: StationVideoConfig,
+    pub poll_rate_hz: u32,
 }

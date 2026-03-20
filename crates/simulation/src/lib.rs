@@ -1,4 +1,4 @@
 pub mod data;
-pub mod hal;
+pub mod hardware;
 mod simulation;
 pub use simulation::Simulation;

@@ -1,5 +1,5 @@
 mod communication;
-pub use communication::{StationCommunicationConfig, StationTelemetryConfig, StationVideoConfig};
+pub use communication::{StationCommunicationConfig, StationCommandConfig, StationTelemetryConfig, StationVideoConfig};
 
 use serde::{Deserialize, Serialize};
 

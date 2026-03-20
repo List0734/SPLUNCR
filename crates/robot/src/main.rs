@@ -1,41 +1,30 @@
-use robot::{Robot, data::condition::ConfigBundle, hardware::{driver::RpiHal, subsystem::VisionSubsystem}};
-use shared::data::config::load_config;
-use std::{env, thread, time::{Duration, SystemTime, UNIX_EPOCH}};
+use std::env;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+
+use robot::Robot;
+use robot::data::config::ConfigBundle;
+use robot::hardware::driver::RpiHal;
+use framework::data::config::load_config;
 
 fn main() {
-    let now = SystemTime::now();
-    let since_epoch = now.duration_since(UNIX_EPOCH).expect("Time went backwards");
-    println!("Program started at {}", since_epoch.as_secs());
+	let mut config_path = env::current_exe().expect("cannot get exe path");
+	config_path.pop();
+	config_path.push("config.toml");
 
-    let mut config_path = env::current_exe().expect("cannot get exe path");
-    config_path.pop();
-    config_path.push("config.toml");
+	let config: ConfigBundle = load_config(config_path.to_str().expect("invalid config path"));
+	println!("configuration loaded from {:?}", config_path);
 
-    let config_path_str = config_path.to_str().expect("invalid config path");
-    let config: ConfigBundle = load_config(config_path_str);
-    println!("Configuration loaded from {:?}", config_path);
+	let robot = Robot::new::<RpiHal>(config);
 
-    let mut vision = VisionSubsystem::new(
-        config.subsystem.vision.camera.clone(),
-        config.communication.video.clone(),
-    );
-    thread::spawn(move || {
-        loop {
-            if let Err(e) = vision.capture_and_send() {
-                eprintln!("Vision error: {}", e);
-                thread::sleep(Duration::from_secs(1));
-            }
-        }
-    });
+	let running = Arc::new(AtomicBool::new(true));
+	let r = running.clone();
+	ctrlc::set_handler(move || r.store(false, Ordering::Relaxed))
+		.expect("failed to set ctrl-c handler");
 
-    let mut robot = Robot::new(config, RpiHal::init());
+	while running.load(Ordering::Relaxed) {
+		std::thread::sleep(std::time::Duration::from_millis(100));
+	}
 
-    robot.init_motors();
-    thread::sleep(Duration::from_millis(3000));
-
-    loop {
-        robot.run();
-
-        thread::sleep(Duration::from_millis(10));
-    }
+	robot.shutdown();
 }

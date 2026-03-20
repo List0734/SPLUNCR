@@ -1,50 +1,48 @@
 use nalgebra::Vector3;
 
-use shared::physics::kinematics::{Pose, Twist};
-use crate::data::transport::telemetry::state::State;
-use crate::data::transport::telemetry::Publisher;
+use framework::physics::kinematics::{Pose, Twist};
 
-use crate::data::condition::state::estimator::OdometryEstimatorState;
 use crate::platform::Fp;
 
 pub struct Odometry {
-    state: OdometryEstimatorState,
-    telemetry: Publisher,
+	pose: Pose<Fp>,
+	twist: Twist<Fp>,
 }
 
 impl Odometry {
-    pub fn new(telemetry: Publisher) -> Self {
-        Self {
-            //sensors,
-            state: OdometryEstimatorState::default(),
-            telemetry
-        }
-    }
+	pub fn new() -> Self {
+		Self {
+			pose: Pose::identity(),
+			twist: Twist::zero(),
+		}
+	}
 
-    pub fn update(&mut self, dt: Fp) -> Twist<Fp> {
-        self.integrate(dt); 
-        self.telemetry.publish(State::OdometryEstimator(self.state));
-        self.state.twist
-    }
+	pub fn update(&mut self, dt: Fp) {
+		self.integrate(dt);
+	}
 
-    pub fn integrate(&mut self, dt: Fp) {
-        let delta = Pose::new(
-            self.state.twist.linear * dt,
-            self.state.twist.angular * dt,
-        );
+	pub fn pose(&self) -> Pose<Fp> {
+		self.pose
+	}
 
-        self.state.pose *= delta;
-    }
+	pub fn twist(&self) -> Twist<Fp> {
+		self.twist
+	}
 
-    pub fn twist(&self) -> Twist<Fp> {
-        self.state.twist
-    }
+	fn integrate(&mut self, dt: Fp) {
+		let delta = Pose::new(
+			self.twist.linear * dt,
+			self.twist.angular * dt,
+		);
 
-    pub fn apply_linear_acceleration(&mut self, acceleration: Vector3<Fp>, dt: Fp) {
-        self.state.twist.linear += acceleration * dt;
-    }
+		self.pose *= delta;
+	}
 
-    pub fn update_angular_velocity(&mut self, velocity: Vector3<Fp>) {
-        self.state.twist.angular = velocity;
-    }
+	pub fn apply_linear_acceleration(&mut self, acceleration: Vector3<Fp>, dt: Fp) {
+		self.twist.linear += acceleration * dt;
+	}
+
+	pub fn update_angular_velocity(&mut self, velocity: Vector3<Fp>) {
+		self.twist.angular = velocity;
+	}
 }

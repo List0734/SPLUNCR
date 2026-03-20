@@ -1,132 +1,98 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::sync::atomic::AtomicBool;
+use std::sync::{Arc, RwLock};
 
-use nalgebra::Vector3;
-use shared::data::transport::message::Message;
+use crate::control::estimator::Odometry;
+use crate::control::regulator::PropulsionRegulator;
+use crate::data::command::OperatorCommand;
+use crate::data::config::ConfigBundle;
+use crate::data::state::RobotState;
+use crate::hardware::interface::Hal;
+use crate::hardware::subsystem::{CommunicationSubsystem, PropulsionSubsystem, VisionSubsystem};
+use crate::mission::Mission;
+use crate::mission::context::TaskContext;
+use crate::mission::task::communication::CommunicationTask;
+use crate::mission::task::propulsion::PropulsionTask;
+use crate::mission::task::sensor::SensorTask;
+use crate::mission::task::vision::VisionTask;
 
-use crate::{control::{estimator::Estimators, regulator::Regulators}, data::{condition::ConfigBundle, transport::{communication::{Communication, command::{Command, CommandPayload}}, telemetry::Telemetry}}, hardware::{interface::{Hal, motor::Motor}, peripheral::Peripherals, subsystem::Subsystems}, platform::{F, subsystem::propulsion::NUM_THRUSTERS}};
-
-pub struct Robot<H: Hal> {
-    communication: Communication,
-    estimators: Estimators,
-    subsystems: Subsystems,
-    regulators: Regulators,
-    peripherals: Peripherals<H>,
-    telemetry: Telemetry,
+pub struct Robot {
+	mission: Mission,
 }
 
-impl<H: Hal> Robot<H> {
-    pub fn new(config: ConfigBundle, peripherals: Peripherals<H>) -> Self {
-        println!("Initializing Robot...");
-        let telemetry = Telemetry::new();
+impl Robot {
+	pub fn new<H: Hal>(config: ConfigBundle) -> Self
+	where
+		H::Motor: Send + 'static,
+		H::Camera: Send + 'static,
+		H::CommandTransport: Send + 'static,
+		H::TelemetryTransport: Send + 'static,
+		H::VideoTransport: Send + 'static,
+	{
+		// Hardware
+		let peripherals = H::init(&config);
 
-        Self {
-            communication: Communication::new(config.communication).expect("Failed to establish communication."),
-            estimators: Estimators::new(telemetry.publisher()),
-            subsystems: Subsystems::new(config.subsystem),
-            regulators: Regulators::new(config.regulator, telemetry.publisher()),
-            peripherals,
-            telemetry,
-        }
-    }
+		// State
+		let state = Arc::new(RwLock::new(RobotState::default()));
+		let command = Arc::new(RwLock::new(OperatorCommand::default()));
+		let shutdown = Arc::new(AtomicBool::new(false));
+		let context = TaskContext::new(state, command, shutdown);
 
-    pub fn init_motors(&mut self) {
-        let commanded = [0.0; NUM_THRUSTERS];
-        let outputs = self.regulators.propulsion.thruster.update(&commanded, 0.01);
-        for (motor, &duty) in self.peripherals.motors.iter_mut().zip(outputs.iter()) {
-            motor.set_duty_cycle(duty).expect("Failed to set motor duty cycle");
-        }
-    }
+		// Propulsion
+		let propulsion = PropulsionSubsystem::new(
+			config.propulsion.clone(),
+			peripherals.motors,
+		);
+		let propulsion_regulator = PropulsionRegulator::new(config.propulsion.regulator.clone());
+		let propulsion_task = PropulsionTask::new(
+			context.clone(),
+			propulsion,
+			propulsion_regulator,
+			config.propulsion.loop_rate_hz,
+		);
 
-    pub fn run(&mut self) {
-        let mut cmd_buf = [0u8; 1024];
-        while let Ok(Some(n)) = self.communication.commands.try_receive(&mut cmd_buf) {
-            let Ok(msg) = bincode::deserialize::<Message<Command>>(&cmd_buf[..n]) else {
-                eprintln!("Ignored malformed command ({n} bytes)");
-                continue;
-            };
-            match msg.payload {
-                CommandPayload::Ping => {
-                    let t2 = SystemTime::now()
-                        .duration_since(UNIX_EPOCH)
-                        .unwrap()
-                        .as_micros() as u64;
-                    let mut pong = [0u8; 16];
-                    pong[0..8].copy_from_slice(&msg.timestamp.to_be_bytes());
-                    pong[8..16].copy_from_slice(&t2.to_be_bytes());
-                    let _ = self.communication.commands.send(&pong);
-                }
-                CommandPayload::SetClock(ts_us) => {
-                    let secs = (ts_us / 1_000_000) as i64;
-                    let nsecs = ((ts_us % 1_000_000) * 1000) as i64;
-                    let ts = libc::timespec { tv_sec: secs, tv_nsec: nsecs };
-                    let ret = unsafe { libc::clock_settime(libc::CLOCK_REALTIME, &ts) };
-                    if ret == 0 {
-                        println!("Clock set to {secs}.{:06}", ts_us % 1_000_000);
-                    } else {
-                        eprintln!("Failed to set clock: {}", std::io::Error::last_os_error());
-                    }
-                }
-                _ => {}
-            }
-        }
+		// Communication
+		let communication = CommunicationSubsystem::new(
+			peripherals.command_transport,
+			peripherals.telemetry_transport,
+		);
+		let communication_task = CommunicationTask::new(
+			context.clone(),
+			communication,
+			config.communication.poll_rate_hz,
+			config.communication.telemetry.rate_hz,
+		);
 
-        // Temporary: sine wave thrust test (~5 second period)
-        let elapsed = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs_f64();
+		// Sensor
+		let odometry = Odometry::new();
+		let sensor_task = SensorTask::new(
+			context.clone(),
+			odometry,
+			config.sensor.loop_rate_hz,
+		);
 
-        let phase = (elapsed % (2.0 * std::f64::consts::PI * 5.0)) as f32;
-        let thrust = (phase / 5.0).sin();
-        let scaled_thrust = 0.20 * thrust;
-        let commanded = [scaled_thrust; NUM_THRUSTERS];
-        let outputs = self.regulators.propulsion.thruster.update(&commanded, 0.01);
-        for (motor, &duty) in self.peripherals.motors.iter_mut().zip(outputs.iter()) {
-            motor.set_duty_cycle(duty).expect("Failed to set motor duty cycle");
-        }
+		// Vision
+		let vision = VisionSubsystem::new(
+			peripherals.camera,
+			peripherals.video_transport,
+		);
+		let vision_task = VisionTask::new(
+			context.clone(),
+			vision,
+		);
 
-        /*
-        let commanded = [1.0; NUM_THRUSTERS];
-        for (motor, &duty) in self.peripherals.motors.iter_mut().zip(commanded.iter()) {
-            motor.set_duty_cycle(duty).expect("Failed to set motor duty cycle");
-        }
+		// Launch
+		let tasks: Vec<Box<dyn FnOnce() + Send>> = vec![
+			Box::new(move || propulsion_task.run()),
+			Box::new(move || communication_task.run()),
+			Box::new(move || sensor_task.run()),
+			Box::new(move || vision_task.run()),
+		];
+		let mission = Mission::launch(context, tasks);
 
-        thread::sleep(Duration::from_millis(5000));
+		Self { mission }
+	}
 
-        let commanded = [-1.0; NUM_THRUSTERS];
-        for (motor, &duty) in self.peripherals.motors.iter_mut().zip(commanded.iter()) {
-            motor.set_duty_cycle(duty).expect("Failed to set motor duty cycle");
-        }
-
-        thread::sleep(Duration::from_millis(5000));
-
-        let commanded = [0.0; NUM_THRUSTERS];
-        for (motor, &duty) in self.peripherals.motors.iter_mut().zip(commanded.iter()) {
-            motor.set_duty_cycle(duty).expect("Failed to set motor duty cycle");
-        }
-        
-        thread::sleep(Duration::from_millis(5000));
-        */
-
-        //self.estimators.odometry.apply_linear_acceleration(Vector3::new(1.0, 0.0, 0.0), 0.001);
-        //self.estimators.odometry.update_angular_velocity(Vector3::new(1.0, 0.0, 0.0));
-        //self.estimators.odometry.update(0.01);
-
-        /*
-        self.regulators.propulsion.velocity.set_setpoint();
-
-        self.regulators.propulsion.velocity.update(measured, dt)
-
-        let thrusts = self.subsystems.propulsion.calculate_thrusts(wrench);
-        self.subsystems.propulsion.apply_thrusts(thrusts);
-        */
-
-        //self.regulators.propulsion.velocity.set_setpoint(Vector3::new(1.0, 0.0, 0.0));
-
-
-        while let Some(message) = self.telemetry.receive() {
-            let bytes = bincode::serialize(&message).unwrap();
-            self.communication.telemetry.send(&bytes).expect("Failed something");
-        }
-    }
+	pub fn shutdown(self) {
+		self.mission.shutdown();
+	}
 }

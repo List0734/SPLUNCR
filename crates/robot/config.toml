@@ -1,69 +1,87 @@
+[communication]
+poll_rate_hz = 200
+
 [communication.command]
 listen_address = "0.0.0.0:9000"
 
 [communication.telemetry]
 target_address = "192.168.100.2:9001"
 bind_address = "0.0.0.0:0"
+rate_hz = 20
 
-[communication.video]
-target_address = "192.168.100.2:9002"
-bind_address = "0.0.0.0:0"
-
-[subsystem.vision.camera]
+[vision.camera]
 device = "/dev/video0"
 width = 1280
 height = 720
 
-[[subsystem.propulsion.thrusters]]
+[vision.stream]
+target_address = "192.168.100.2:9002"
+bind_address = "0.0.0.0:0"
+
+[propulsion]
+loop_rate_hz = 100
+
+[[propulsion.thrusters]]
 id = 1
+gpio_pin = 4
 placement.position = [ 1.0,  1.0,  1.0]
 placement.direction = [ 1.0,  1.0,  1.0]
 
-[[subsystem.propulsion.thrusters]]
+[[propulsion.thrusters]]
 id = 2
+gpio_pin = 5
 placement.position = [ 1.0,  1.0, -1.0]
 placement.direction = [ 1.0,  1.0, -1.0]
 
-[[subsystem.propulsion.thrusters]]
+[[propulsion.thrusters]]
 id = 3
+gpio_pin = 6
 placement.position = [ 1.0, -1.0,  1.0]
 placement.direction = [ 1.0, -1.0,  1.0]
 
-[[subsystem.propulsion.thrusters]]
+[[propulsion.thrusters]]
 id = 4
+gpio_pin = 12
 placement.position = [ 1.0, -1.0, -1.0]
 placement.direction = [ 1.0, -1.0, -1.0]
 
-[[subsystem.propulsion.thrusters]]
+[[propulsion.thrusters]]
 id = 5
+gpio_pin = 13
 placement.position = [-1.0,  1.0,  1.0]
 placement.direction = [-1.0,  1.0,  1.0]
 
-[[subsystem.propulsion.thrusters]]
+[[propulsion.thrusters]]
 id = 6
+gpio_pin = 16
 placement.position = [-1.0,  1.0, -1.0]
 placement.direction = [-1.0,  1.0, -1.0]
 
-[[subsystem.propulsion.thrusters]]
+[[propulsion.thrusters]]
 id = 7
+gpio_pin = 17
 placement.position = [-1.0, -1.0,  1.0]
 placement.direction = [-1.0, -1.0,  1.0]
 
-[[subsystem.propulsion.thrusters]]
+[[propulsion.thrusters]]
 id = 8
+gpio_pin = 18
 placement.position = [-1.0, -1.0, -1.0]
 placement.direction = [-1.0, -1.0, -1.0]
 
-[regulator.propulsion.velocity.linear]
-surge  = { kp = 1.0, ki = 0.0, kd = 0.1 }
-sway   = { kp = 1.0, ki = 0.0, kd = 0.1 }
-heave  = { kp = 2.0, ki = 0.0, kd = 0.2 }
+[propulsion.regulator.velocity.linear]
+surge = { kp = 1.0, ki = 0.0, kd = 0.1 }
+sway  = { kp = 1.0, ki = 0.0, kd = 0.1 }
+heave = { kp = 2.0, ki = 0.0, kd = 0.2 }
 
-[regulator.propulsion.velocity.angular]
+[propulsion.regulator.velocity.angular]
 roll  = { kp = 0.5, ki = 0.0, kd = 0.05 }
 pitch = { kp = 0.5, ki = 0.0, kd = 0.05 }
 yaw   = { kp = 0.8, ki = 0.0, kd = 0.1 }
 
-[regulator.propulsion.thruster.coast]
+[propulsion.regulator.thruster.coast]
 accel_rate = 3.0
 decel_rate = 3.0
+
+[sensor]
+loop_rate_hz = 50

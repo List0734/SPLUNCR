@@ -2,7 +2,9 @@ use std::time::Duration;
 
 use rppal::gpio::{Gpio, OutputPin};
 
-use crate::{hardware::interface::motor::Motor, platform::F};
+use framework::hardware::interface::Motor;
+
+use crate::platform::F;
 
 const PERIOD: Duration = Duration::from_micros(20_000); // 50 Hz
 const NEUTRAL: Duration = Duration::from_micros(1480); // 7.4% duty cycle
@@ -39,7 +41,7 @@ impl ZmrEsc {
     }
 }
 
-impl Motor for ZmrEsc {
+impl Motor<F> for ZmrEsc {
     type Error = rppal::gpio::Error;
 
     fn init(&mut self) -> Result<(), Self::Error> {

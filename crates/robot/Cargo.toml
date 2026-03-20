@@ -5,15 +5,19 @@ edition = "2024"
 
 [features]
 default = ["hardware"]
-hardware = ["rppal"]
+hardware = ["rpi"]
+rpi = ["dep:rppal", "camera", "network"]
+camera = ["dep:v4l"]
+network = []
 simulation = []
 
 [dependencies]
-shared = { path = "../shared", features = ["std"] }
+framework = { path = "../framework", features = ["std"] }
 nalgebra = { version = "0.34.1", features = ["serde-serialize"] }
 crossbeam = "0.8.4"
 serde = { version = "1.0.228", features = ["derive"] }
 bincode = "1"
+ctrlc = "3"
 rppal = { version = "0.22.1", optional = true }
-v4l = "0.14"
+v4l = { version = "0.14", optional = true }
 libc = "0.2"

@@ -7,14 +7,7 @@ pub type Fp = f64;
 pub fn fp(x: F) -> Fp { x as Fp }
 
 pub mod subsystem {
-    pub mod propulsion {
-        pub const NUM_THRUSTERS: usize = 8;
-    }
+	pub mod propulsion {
+		pub const NUM_THRUSTERS: usize = 8;
+	}
 }
-
-pub mod peripheral {
-    pub const MOTOR_PINS: [u8; super::subsystem::propulsion::NUM_THRUSTERS] = [
-        4, 5, 6, 12, 13, 16, 17, 18,
-    ];
-}
-

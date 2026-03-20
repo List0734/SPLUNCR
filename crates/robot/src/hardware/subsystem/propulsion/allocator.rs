@@ -1,5 +1,7 @@
 use nalgebra::SMatrix;
-use shared::physics::dynamics::Wrench;
+use framework::physics::dynamics::Wrench;
+
+use framework::hardware::interface::Motor;
 
 use crate::{hardware::subsystem::propulsion::Thruster, platform::{F, subsystem::propulsion::NUM_THRUSTERS}};
 
@@ -14,7 +16,7 @@ pub struct Allocator {
 }
 
 impl Allocator {
-    pub fn new(thrusters: &[Thruster]) -> Self {
+    pub fn new<M: Motor<F>>(thrusters: &[Thruster<M>]) -> Self {
         let mut allocation = AllocationMatrix::zeros();
 
         for (i, thruster) in thrusters.iter().enumerate() {

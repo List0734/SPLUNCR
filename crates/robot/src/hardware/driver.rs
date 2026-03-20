@@ -1,26 +1,60 @@
-pub mod motor;
-pub use motor::ZmrEsc;
+#[cfg(feature = "camera")]
+pub mod camera;
 
+#[cfg(feature = "rpi")]
+pub mod motor;
+
+#[cfg(feature = "network")]
+pub mod socket;
+
+#[cfg(feature = "rpi")]
 use crate::{
-    hardware::{interface::{Hal, motor::Motor}, peripheral::Peripherals},
-    platform::peripheral::MOTOR_PINS,
+	data::config::ConfigBundle,
+	hardware::interface::{Hal, Peripherals},
 };
 
+#[cfg(feature = "rpi")]
 pub struct RpiHal;
 
+#[cfg(feature = "rpi")]
 impl Hal for RpiHal {
-    type Motor = ZmrEsc;
-}
+	type Motor = motor::ZmrEsc;
+	type Camera = camera::V4lCamera;
+	type CommandTransport = socket::TcpDriver;
+	type TelemetryTransport = socket::UdpDriver;
+	type VideoTransport = socket::UdpDriver;
 
-impl RpiHal {
-    pub fn init() -> Peripherals<Self> {
-        Peripherals {
-            motors: MOTOR_PINS.map(|pin| {
-                let mut motor = ZmrEsc::new(pin).expect("Failed to initialize motor");
-                motor.init().expect("Failed to init motor PWM");
-                motor.set_enabled(true).expect("Failed to enable motor");
-                motor
-            }),
-        }
-    }
+	fn init(config: &ConfigBundle) -> Peripherals<Self> {
+		let motors = config.propulsion.thrusters
+			.map(|thruster| {
+				motor::ZmrEsc::new(thruster.gpio_pin).expect("failed to initialize motor")
+			});
+
+		let camera = camera::V4lCamera::new(
+			&config.vision.camera.device,
+			config.vision.camera.width,
+			config.vision.camera.height,
+		);
+
+		let command_transport = socket::TcpDriver::new(&config.communication.command.listen_address)
+			.expect("failed to bind command transport");
+
+		let telemetry_transport = socket::UdpDriver::new(
+			&config.communication.telemetry.bind_address,
+			&config.communication.telemetry.target_address,
+		).expect("failed to bind telemetry transport");
+
+		let video_transport = socket::UdpDriver::new(
+			&config.vision.stream.bind_address,
+			&config.vision.stream.target_address,
+		).expect("failed to bind video transport");
+
+		Peripherals {
+			motors,
+			camera,
+			command_transport,
+			telemetry_transport,
+			video_transport,
+		}
+	}
 }

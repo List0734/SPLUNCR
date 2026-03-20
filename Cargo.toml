@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "crates/shared",
+    "crates/framework",
     "crates/robot",
     "crates/simulation",
     "crates/station",

@@ -1,44 +1,62 @@
-use crate::{data::condition::config::{Config, subsystem::PropulsionConfig}, platform::{F, subsystem::propulsion::NUM_THRUSTERS}};
+use framework::hardware::interface::Motor;
+use framework::physics::dynamics::Wrench;
+
+use crate::data::config::propulsion::PropulsionConfig;
+use crate::data::config::Config;
+use crate::platform::{F, subsystem::propulsion::NUM_THRUSTERS};
 
 mod thruster;
 pub use thruster::Thruster;
 mod allocator;
 pub use allocator::Allocator;
-use shared::physics::dynamics::{Force, Wrench};
 
-pub struct PropulsionSubsystem {
-    thrusters: [Thruster; NUM_THRUSTERS],
-    allocator: Allocator,
+pub struct PropulsionSubsystem<M: Motor<F>> {
+	thrusters: [Thruster<M>; NUM_THRUSTERS],
+	allocator: Allocator,
 }
 
-impl PropulsionSubsystem {
-    pub fn new(config: PropulsionConfig) -> Self {
-        let thrusters = config.thrusters.map(Thruster::new);
-        let allocator = Allocator::new(&thrusters);
+impl<M: Motor<F>> PropulsionSubsystem<M> {
+	pub fn new(config: PropulsionConfig, motors: [M; NUM_THRUSTERS]) -> Self {
+		let mut motors_iter = motors.into_iter();
+		let thrusters = config.thrusters.map(|config| {
+			Thruster::new(config, motors_iter.next().unwrap())
+		});
+		let allocator = Allocator::new(&thrusters);
 
-        Self {
-            thrusters,
-            allocator,
-        }
-    }
+		Self {
+			thrusters,
+			allocator,
+		}
+	}
 
-    pub fn calculate_thrusts(&self, wrench: Wrench<F>) -> [Force<F>; NUM_THRUSTERS] {
-        self.allocator.allocate(wrench)
-    }
+	pub fn init(&mut self) {
+		for thruster in &mut self.thrusters {
+			thruster.init();
+		}
+	}
 
-    pub fn apply_thrusts(&mut self, thrusts: [Force<F>; NUM_THRUSTERS]) {
-        for (thruster, thrust) in self.thrusters.iter_mut().zip(thrusts) {
-            thruster.set_thrust(thrust);
-        }
-    }
+	pub fn allocate(&self, wrench: Wrench<F>) -> [F; NUM_THRUSTERS] {
+		self.allocator.allocate(wrench)
+	}
+
+	pub fn set_duty_cycles(&mut self, duties: &[F; NUM_THRUSTERS]) {
+		for (thruster, &duty) in self.thrusters.iter_mut().zip(duties.iter()) {
+			thruster.set_duty_cycle(duty);
+		}
+	}
+
+	pub fn stop(&mut self) {
+		for thruster in &mut self.thrusters {
+			thruster.stop();
+		}
+	}
 }
 
-impl Config<PropulsionConfig> for PropulsionSubsystem {
-    fn update_config(&mut self, config: PropulsionConfig) {
-        for (thruster, config) in self.thrusters.iter_mut().zip(&config.thrusters) {
-            thruster.update_config(config.clone());
-        }
-
-        self.allocator = Allocator::new(&self.thrusters);
-    }
+impl<M: Motor<F>> Config<PropulsionConfig> for PropulsionSubsystem<M> {
+	fn update_config(&mut self, config: PropulsionConfig) {
+		for (thruster, config) in self.thrusters.iter_mut().zip(&config.thrusters) {
+			thruster.update_config(*config);
+		}
+		self.allocator = Allocator::new(&self.thrusters);
+	}
 }

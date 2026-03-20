@@ -1,22 +1,25 @@
+[overrides.robot.communication.command]
+listen_address = "127.0.0.1:9000"
+[overrides.robot.communication.telemetry]
+target_address = "127.0.0.1:9001"
+[overrides.robot.vision.stream]
+target_address = "127.0.0.1:9002"
+
+[overrides.station.communication.command]
+target_address = "127.0.0.1:9000"
+[overrides.station.communication.telemetry]
+listen_address = "127.0.0.1:9001"
+[overrides.station.communication.video]
+listen_address = "127.0.0.1:9002"
+
 [environment]
 water_temperature = 15.0
 
-[communication.robot.command]
-listen_address = "127.0.0.1:9000"
+[vehicle.dynamics]
+mass = 10.0
+drag = 5.0
 
-[communication.robot.telemetry]
-target_address = "127.0.0.1:9001"
-bind_address = "0.0.0.0:0"
-
-[communication.robot.video]
-target_address = "127.0.0.1:9002"
-bind_address = "0.0.0.0:0"
-
-[communication.station.command]
-target_address = "127.0.0.1:9000"
-
-[communication.station.telemetry]
-listen_address = "127.0.0.1:9001"
-
-[communication.station.video]
-listen_address = "127.0.0.1:9002"
+[vehicle.hardware.imu]
+noise_stddev = 0.01
+[vehicle.hardware.depth]
+noise_stddev = 0.005

@@ -1,0 +1,6 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct AutonomousCommand {
+	pub emergency_stop: bool,
+}

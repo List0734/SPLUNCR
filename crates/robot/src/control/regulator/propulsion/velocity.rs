@@ -1,96 +1,88 @@
 use nalgebra::{SVector, Vector3};
-use shared::{control::controllers::{PID, PID6, pid::PIDConfig}, physics::kinematics::Twist};
+use framework::{control::controllers::{PID, PID6, pid::PIDConfig}, physics::kinematics::Twist};
 
 use crate::{
-    data::{
-        condition::{config::{Config, regulator::propulsion::VelocityRegulatorConfig}, state::regulator::VelocityRegulatorState},
-        transport::telemetry::{Publisher, state::State},
-    },
-    platform::F,
+	data::config::{Config, propulsion::regulator::VelocityRegulatorConfig},
+	platform::F,
 };
 
 pub struct VelocityRegulator {
-    pids: PID6<F>,
-    setpoint: Twist<F>,
-    telemetry: Publisher,
+	pids: PID6<F>,
+	setpoint: Twist<F>,
 }
 
 impl VelocityRegulator {
-    pub fn new(config: VelocityRegulatorConfig, telemetry: Publisher) -> Self {
-        let configs: [PIDConfig<F>; 6] = [
-            config.linear.surge,
-            config.linear.sway,
-            config.linear.heave,
-            config.angular.roll,
-            config.angular.pitch,
-            config.angular.yaw,
-        ];
+	pub fn new(config: VelocityRegulatorConfig) -> Self {
+		let configs: [PIDConfig<F>; 6] = [
+			config.linear.surge,
+			config.linear.sway,
+			config.linear.heave,
+			config.angular.roll,
+			config.angular.pitch,
+			config.angular.yaw,
+		];
 
-        Self {
-            pids: PID6::new(configs),
-            setpoint: Twist::zero(),
-            telemetry,
-        }
-    }
+		Self {
+			pids: PID6::new(configs),
+			setpoint: Twist::zero(),
+		}
+	}
 
-    pub fn update(&mut self, measured: &Twist<F>, dt: f32) -> Twist<F> {
-        let setpoints: SVector<f32, 6> = SVector::from_row_slice(&[
-            self.setpoint.linear.x,
-            self.setpoint.linear.y,
-            self.setpoint.linear.z,
-            self.setpoint.angular.x,
-            self.setpoint.angular.y,
-            self.setpoint.angular.z,
-        ]);
+	pub fn update(&mut self, measured: &Twist<F>, dt: f32) -> Twist<F> {
+		let setpoints: SVector<f32, 6> = SVector::from_row_slice(&[
+			self.setpoint.linear.x,
+			self.setpoint.linear.y,
+			self.setpoint.linear.z,
+			self.setpoint.angular.x,
+			self.setpoint.angular.y,
+			self.setpoint.angular.z,
+		]);
 
-        let measured_vec: SVector<f32, 6> = SVector::from_row_slice(&[
-            measured.linear.x,
-            measured.linear.y,
-            measured.linear.z,
-            measured.angular.x,
-            measured.angular.y,
-            measured.angular.z,
-        ]);
+		let measured_vec: SVector<f32, 6> = SVector::from_row_slice(&[
+			measured.linear.x,
+			measured.linear.y,
+			measured.linear.z,
+			measured.angular.x,
+			measured.angular.y,
+			measured.angular.z,
+		]);
 
-        let output = self.pids.update(&setpoints, &measured_vec, dt);
+		let output = self.pids.update(&setpoints, &measured_vec, dt);
 
-        let output = Twist {
-            linear: Vector3::new(output[0], output[1], output[2]),
-            angular: Vector3::new(output[3], output[4], output[5]),
-        };
+		Twist {
+			linear: Vector3::new(output[0], output[1], output[2]),
+			angular: Vector3::new(output[3], output[4], output[5]),
+		}
+	}
 
-        self.telemetry.publish(State::VelocityRegulator(VelocityRegulatorState {
-            setpoint: self.setpoint,
-            output,
-        }));
+	pub fn setpoint(&self) -> Twist<F> {
+		self.setpoint
+	}
 
-        output
-    }
+	pub fn set_setpoint(&mut self, setpoint: Twist<F>) {
+		self.setpoint = setpoint;
+	}
 
-    pub fn set_setpoint(&mut self, setpoint: Twist<F>) {
-        self.setpoint = setpoint;
-    }
+	pub fn reset(&mut self) {
+		self.pids.reset();
+	}
 
-    pub fn reset(&mut self) {
-        self.pids.reset();
-    }
-
-    pub fn set_gains(&mut self, configs: [PIDConfig<F>; 6]) {
-        self.pids.set_gains(&configs);
-    }
+	pub fn set_gains(&mut self, configs: [PIDConfig<F>; 6]) {
+		self.pids.set_gains(&configs);
+	}
 }
 
 impl Config<VelocityRegulatorConfig> for VelocityRegulator {
-    fn update_config(&mut self, config: VelocityRegulatorConfig) {
-        let gains: [PIDConfig<F>; 6] = [
-            config.linear.surge,
-            config.linear.sway,
-            config.linear.heave,
-            config.angular.roll,
-            config.angular.pitch,
-            config.angular.yaw,
-        ];
+	fn update_config(&mut self, config: VelocityRegulatorConfig) {
+		let gains: [PIDConfig<F>; 6] = [
+			config.linear.surge,
+			config.linear.sway,
+			config.linear.heave,
+			config.angular.roll,
+			config.angular.pitch,
+			config.angular.yaw,
+		];
 
-        self.pids.set_gains(&gains);
-    }
+		self.pids.set_gains(&gains);
+	}
 }

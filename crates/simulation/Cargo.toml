@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-robot = { path = "../robot", features = ["simulation"] }
+robot = { path = "../robot", default-features = false, features = ["simulation", "camera", "network"] }
 station = { path = "../station" }
-shared = { path = "../shared", features = ["std"] }
+framework = { path = "../framework", features = ["std"] }
 kiss3d = "0.37"
 nalgebra = "0.34.1"
 serde = { version = "1.0.228", features = ["derive"] }

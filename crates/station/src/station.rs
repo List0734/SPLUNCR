@@ -1,46 +1,73 @@
+use std::net::UdpSocket;
 use std::sync::{Arc, Mutex};
 
-use robot::data::condition::RobotCondition;
-
-use crate::{Gui, data::{config::StationConfig, transport::{command::Commands, communication::Communication}}, gui::scene::ConnectingScene};
+use crate::data::condition::RobotCondition;
+use crate::data::config::StationConfig;
+use crate::service::Services;
+use crate::service::communication::CommunicationService;
+use crate::service::context::StationContext;
+use crate::service::video::VideoService;
+use crate::subsystem::communication::Communication;
+use crate::subsystem::gui::Gui;
+use crate::subsystem::gui::scene::ConnectingScene;
+use crate::subsystem::video::Video;
 
 pub struct Station {
-    robot: Arc<Mutex<RobotCondition>>,
-    gui: Gui,
-    commands: Commands,
-    communication: Arc<Communication>,
+	context: StationContext,
+	services: Services,
+	gui: Gui,
 }
 
 impl Station {
-    pub fn new(condition: Arc<Mutex<RobotCondition>>, config: StationConfig) -> Self {
-        let communication = Arc::new(
-            Communication::new(config.communication).expect("Error Opening Port")
-        );
-        communication.spawn_telemetry_receiver(Arc::clone(&condition));
-        communication.spawn_command_connector();
-        communication.spawn_video_receiver();
+	pub fn new(condition: Arc<Mutex<RobotCondition>>, config: StationConfig) -> Self {
+		// Context
+		let context = StationContext::new(condition);
 
-        let commands = Commands::new();
-        let video = communication.video_frame();
+		// Sockets
+		let telemetry_socket = UdpSocket::bind(&config.communication.telemetry.listen_address)
+			.expect("Failed to bind telemetry socket");
+		telemetry_socket.set_nonblocking(true).unwrap();
 
-        let initial_scene = ConnectingScene::new(Arc::clone(&communication));
-        let robot_snapshot = condition.lock().unwrap().clone();
-        let gui = Gui::new(initial_scene, &robot_snapshot, video);
+		let video_socket = UdpSocket::bind(&config.communication.video.listen_address)
+			.expect("Failed to bind video socket");
+		video_socket.set_nonblocking(true).unwrap();
 
-        Self {
-            robot: condition,
-            gui,
-            commands,
-            communication,
-        }
-    }
+		// Communication
+		let communication = Communication::new(&config.communication.command, telemetry_socket);
+		let communication_service = CommunicationService::new(
+			context.clone(),
+			communication,
+			&config.communication,
+		);
 
-    pub async fn run(&mut self) {
-        while let Some(message) = self.commands.receive() {
-            let bytes = bincode::serialize(&message).unwrap();
-            let _ = self.communication.send_command(&bytes);
-        }
+		// Video
+		let video = Video::new(video_socket);
+		let video_service = VideoService::new(
+			context.clone(),
+			video,
+			config.communication.poll_rate_hz,
+		);
 
-        self.gui.run(Arc::clone(&self.robot)).await;
-    }
+		// Services
+		let tasks: Vec<Box<dyn FnOnce() + Send>> = vec![
+			Box::new(move || communication_service.run()),
+			Box::new(move || video_service.run()),
+		];
+		let services = Services::launch(context.clone(), tasks);
+
+		// GUI
+		let initial_scene = ConnectingScene::new(Arc::clone(&context.state));
+		let robot_snapshot = context.condition.lock().unwrap().clone();
+		let gui = Gui::new(initial_scene, &robot_snapshot, Arc::clone(&context.video_frame));
+
+		Self { context, services, gui }
+	}
+
+	pub async fn run(&mut self) {
+		self.gui.run(Arc::clone(&self.context.condition)).await;
+	}
+
+	pub fn shutdown(self) {
+		self.services.shutdown();
+	}
 }

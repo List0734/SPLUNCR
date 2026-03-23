@@ -48,9 +48,9 @@ impl Camera for V4lCamera {
 	type Error = std::io::Error;
 
 	fn capture(&mut self) -> Result<Frame<'_>, Self::Error> {
-		let (buf, _meta) = self.stream.next()?;
+		let (buf, meta) = self.stream.next()?;
 		Ok(Frame {
-			data: buf,
+			data: &buf[..meta.bytesused as usize],
 			width: self.width,
 			height: self.height,
 		})

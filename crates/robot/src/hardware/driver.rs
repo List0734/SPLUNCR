@@ -4,6 +4,9 @@ pub mod camera;
 #[cfg(feature = "rpi")]
 pub mod motor;
 
+#[cfg(feature = "rpi")]
+pub mod sensor;
+
 #[cfg(feature = "network")]
 pub mod socket;
 

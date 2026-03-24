@@ -1,5 +1,5 @@
-mod bmp280;
-mod mpu6500;
+mod imu;
+mod thermometer;
 
-pub use bmp280::Bmp280;
-pub use mpu6500::Mpu6500;
+pub use imu::Mpu6500;
+pub use thermometer::Bmp280;

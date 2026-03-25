@@ -18,3 +18,7 @@ pub trait Accelerometer<R>: Sensor {
 pub trait Gyroscope<R>: Sensor {
 	fn read_rotation(&mut self) -> Result<R, Self::Error>;
 }
+
+pub trait Bathometer<S>: Sensor {
+	fn read_depth(&mut self) -> Result<S, Self::Error>;
+}

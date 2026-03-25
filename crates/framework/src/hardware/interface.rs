@@ -5,5 +5,5 @@ pub mod socket;
 
 pub use camera::{Camera, Frame};
 pub use motor::Motor;
-pub use sensor::{Sensor, Thermometer, Barometer, Accelerometer, Gyroscope};
+pub use sensor::{Sensor, Thermometer, Barometer, Bathometer, Accelerometer, Gyroscope};
 pub use socket::{Stream, Datagram};

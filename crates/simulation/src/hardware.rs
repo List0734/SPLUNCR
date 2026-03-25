@@ -1,5 +1,8 @@
 pub mod motor;
+pub mod sensor;
+
 pub use motor::SimMotor;
+pub use sensor::{SimImu, SimAtmosphericSensor, SimAquaticSensor};
 
 use robot::{
 	data::config::ConfigBundle,
@@ -18,6 +21,9 @@ pub struct SimHal;
 impl Hal for SimHal {
 	type Motor = SimMotor;
 	type Camera = V4lCamera;
+	type Imu = SimImu;
+	type AtmosphericSensor = SimAtmosphericSensor;
+	type AquaticSensor = SimAquaticSensor;
 	type CommandTransport = TcpDriver;
 	type TelemetryTransport = UdpDriver;
 	type VideoTransport = UdpDriver;
@@ -50,6 +56,9 @@ impl Hal for SimHal {
 		Peripherals {
 			motors,
 			camera,
+			imu: SimImu::new(),
+			atmospheric_sensor: SimAtmosphericSensor::new(),
+			aquatic_sensor: SimAquaticSensor::new(),
 			command_transport,
 			telemetry_transport,
 			video_transport,

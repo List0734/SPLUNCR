@@ -24,6 +24,9 @@ impl Robot {
 	where
 		H::Motor: Send + 'static,
 		H::Camera: Send + 'static,
+		H::Imu: Send + 'static,
+		H::AtmosphericSensor: Send + 'static,
+		H::AquaticSensor: Send + 'static,
 		H::CommandTransport: Send + 'static,
 		H::TelemetryTransport: Send + 'static,
 		H::VideoTransport: Send + 'static,
@@ -67,6 +70,9 @@ impl Robot {
 		let sensor_task = SensorTask::new(
 			context.clone(),
 			odometry,
+			peripherals.imu,
+			peripherals.atmospheric_sensor,
+			peripherals.aquatic_sensor,
 			config.sensor.loop_rate_hz,
 		);
 

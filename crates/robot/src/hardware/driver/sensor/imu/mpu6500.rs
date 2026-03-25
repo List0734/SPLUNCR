@@ -40,10 +40,9 @@ impl Mpu6500 {
 		let chip_id = i2c.smbus_read_byte(CHIP_ID_REG)?;
 		assert_eq!(chip_id, EXPECTED_CHIP_ID, "MPU6500 not found, got 0x{chip_id:02X}");
 
-		Ok(Self {
-			i2c,
-			gyro_offset: Vector3::zeros(),
-		})
+		let mut sensor = Self { i2c, gyro_offset: Vector3::zeros() };
+		sensor.calibrate()?;
+		Ok(sensor)
 	}
 
 	fn read_word(&mut self, reg: u8) -> Result<i16, rppal::i2c::Error> {

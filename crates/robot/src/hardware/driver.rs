@@ -4,7 +4,7 @@ pub mod camera;
 #[cfg(feature = "rpi")]
 pub mod motor;
 
-#[cfg(feature = "rpi")]
+#[cfg(feature = "i2c")]
 pub mod sensor;
 
 #[cfg(feature = "network")]
@@ -23,6 +23,9 @@ pub struct RpiHal;
 impl Hal for RpiHal {
 	type Motor = motor::ZmrEsc;
 	type Camera = camera::V4lCamera;
+	type Imu = sensor::Mpu6500;
+	type AtmosphericSensor = sensor::Bmp280;
+	type AquaticSensor = sensor::Ms5837;
 	type CommandTransport = socket::TcpDriver;
 	type TelemetryTransport = socket::UdpDriver;
 	type VideoTransport = socket::UdpDriver;
@@ -55,9 +58,18 @@ impl Hal for RpiHal {
 			false,
 		).expect("failed to bind video transport");
 
+		let imu = sensor::Mpu6500::new().expect("failed to initialize IMU");
+
+		let atmospheric_sensor = sensor::Bmp280::new().expect("failed to initialize atmospheric sensor");
+
+		let aquatic_sensor = sensor::Ms5837::new().expect("failed to initialize depth sensor");
+
 		Peripherals {
 			motors,
 			camera,
+			imu,
+			atmospheric_sensor,
+			aquatic_sensor,
 			command_transport,
 			telemetry_transport,
 			video_transport,

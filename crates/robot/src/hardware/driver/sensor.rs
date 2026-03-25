@@ -1,5 +1,7 @@
+mod atmospheric;
+mod aquatic;
 mod imu;
-mod thermometer;
 
+pub use atmospheric::Bmp280;
+pub use aquatic::Ms5837;
 pub use imu::Mpu6500;
-pub use thermometer::Bmp280;

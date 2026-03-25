@@ -45,7 +45,7 @@ impl Controller {
 				btn(Button::RightTrigger2) - btn(Button::LeftTrigger2),
 			),
 			torque: Vector3::new(
-				btn(Button::RightTrigger) - btn(Button::LeftTrigger),
+				btn(Button::LeftTrigger) - btn(Button::RightTrigger),
 				axis(Axis::RightStickY),
 				-axis(Axis::RightStickX),
 			),

@@ -1,7 +1,7 @@
 use framework::hardware::interface::Motor;
 use framework::physics::dynamics::Wrench;
 
-use crate::data::config::propulsion::PropulsionConfig;
+use crate::data::config::propulsion::{PropulsionConfig, ThrusterConfig};
 use crate::data::config::Config;
 use crate::platform::{F, subsystem::propulsion::NUM_THRUSTERS};
 
@@ -18,8 +18,8 @@ pub struct PropulsionSubsystem<M: Motor<F>> {
 impl<M: Motor<F>> PropulsionSubsystem<M> {
 	pub fn new(config: PropulsionConfig, motors: [M; NUM_THRUSTERS]) -> Self {
 		let mut motors_iter = motors.into_iter();
-		let thrusters = config.thrusters.map(|config| {
-			Thruster::new(config, motors_iter.next().unwrap())
+		let thrusters = Self::resolve_thruster_configs(&config).map(|thruster_config| {
+			Thruster::new(thruster_config, motors_iter.next().unwrap())
 		});
 		let allocator = Allocator::new(&thrusters);
 
@@ -43,9 +43,9 @@ impl<M: Motor<F>> PropulsionSubsystem<M> {
 		self.allocator.allocate(wrench, reverse_allowed)
 	}
 
-	pub fn set_duty_cycles(&mut self, duties: &[F; NUM_THRUSTERS]) {
-		for (thruster, &duty) in self.thrusters.iter_mut().zip(duties.iter()) {
-			thruster.set_duty_cycle(duty);
+	pub fn set_thrust_fractions(&mut self, fractions: &[F; NUM_THRUSTERS]) {
+		for (thruster, &fraction) in self.thrusters.iter_mut().zip(fractions.iter()) {
+			thruster.set_thrust_fraction(fraction);
 		}
 	}
 
@@ -54,12 +54,23 @@ impl<M: Motor<F>> PropulsionSubsystem<M> {
 			thruster.stop();
 		}
 	}
+
+	fn resolve_thruster_configs(config: &PropulsionConfig) -> [ThrusterConfig; NUM_THRUSTERS] {
+		let mut thrusters = config.thrusters;
+		for thruster in &mut thrusters {
+			if thruster.max_force.is_none() {
+				thruster.max_force = Some(config.default_max_force);
+			}
+		}
+		thrusters
+	}
 }
 
 impl<M: Motor<F>> Config<PropulsionConfig> for PropulsionSubsystem<M> {
 	fn update_config(&mut self, config: PropulsionConfig) {
-		for (thruster, config) in self.thrusters.iter_mut().zip(&config.thrusters) {
-			thruster.update_config(*config);
+		let resolved = PropulsionSubsystem::<M>::resolve_thruster_configs(&config);
+		for (thruster, thruster_config) in self.thrusters.iter_mut().zip(&resolved) {
+			thruster.update_config(*thruster_config);
 		}
 		self.allocator = Allocator::new(&self.thrusters);
 	}

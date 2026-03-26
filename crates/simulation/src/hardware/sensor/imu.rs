@@ -1,6 +1,6 @@
 use nalgebra::Vector3;
 
-use framework::hardware::interface::{Sensor, Accelerometer, Gyroscope};
+use framework::{hardware::interface::{Accelerometer, Gyroscope, Sensor}, physics::constants::STANDARD_GRAVITY};
 
 pub struct SimImu;
 
@@ -20,7 +20,7 @@ impl Sensor for SimImu {
 
 impl Accelerometer<Vector3<f32>> for SimImu {
 	fn read_acceleration(&mut self) -> Result<Vector3<f32>, Self::Error> {
-		Ok(Vector3::zeros())
+		Ok(Vector3::new(0.0, 0.0, -STANDARD_GRAVITY as f32))
 	}
 }
 

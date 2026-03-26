@@ -22,6 +22,7 @@ bind_address = "0.0.0.0:0"
 
 [propulsion]
 loop_rate_hz = 100
+default_max_force = { forward = 1.0, reverse = 0.7 }
 
 # Corner thrusters, angled 45 degrees inward
 [[propulsion.thrusters]]

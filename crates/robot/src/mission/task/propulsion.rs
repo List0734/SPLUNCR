@@ -69,7 +69,7 @@ impl<M: Motor<F>> PropulsionTask<M> {
 		};
 
 		if emergency_stop {
-			self.propulsion.set_duty_cycles(&[0.0; NUM_THRUSTERS]);
+			self.propulsion.set_thrust_fractions(&[0.0; NUM_THRUSTERS]);
 			return;
 		}
 
@@ -92,7 +92,7 @@ impl<M: Motor<F>> PropulsionTask<M> {
 		};
 		let commanded = self.propulsion.allocate(wrench, operator_command.bidirectional_thrust);
 		let outputs = self.regulator.thruster.update(&commanded, dt);
-		self.propulsion.set_duty_cycles(&outputs);
+		self.propulsion.set_thrust_fractions(&outputs);
 
 		{
 			let mut state = self.context.state.write().unwrap();

@@ -8,12 +8,14 @@ use crate::platform::F;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct OperatorCommand {
 	pub propulsion: PropulsionCommand,
+	pub bidirectional_thrust: bool,
 }
 
 impl Default for OperatorCommand {
 	fn default() -> Self {
 		Self {
 			propulsion: PropulsionCommand::OpenLoop(Wrench::zero()),
+			bidirectional_thrust: false,
 		}
 	}
 }

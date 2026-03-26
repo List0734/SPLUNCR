@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CommunicationConfig {
 	pub poll_rate_hz: u32,
+	pub emergency_stop_timeout_ms: u32,
 	pub command: CommandConfig,
 	pub telemetry: TelemetryConfig,
 }

@@ -40,10 +40,26 @@ impl Allocator {
         Self { pseudo_inverse }
     }
 
-    pub fn allocate(&self, wrench: Wrench<F>) -> [F; NUM_THRUSTERS] {
+    pub fn allocate(&self, wrench: Wrench<F>, reverse_allowed: [bool; NUM_THRUSTERS]) -> [F; NUM_THRUSTERS] {
         let wrench_vec = wrench.as_vector();
+        let mut thrusts: [F; NUM_THRUSTERS] = *(&self.pseudo_inverse * wrench_vec).as_ref();
 
-        let thrusts = &self.pseudo_inverse * wrench_vec;
-        *thrusts.as_ref()
+        for i in 0..NUM_THRUSTERS {
+            if !reverse_allowed[i] {
+                thrusts[i] = thrusts[i].max(0.0);
+            }
+        }
+
+        let max_thrust = thrusts.iter().fold(0.0_f32, |m, &t| m.max(t.abs()));
+        let max_input = wrench_vec.iter().fold(0.0_f32, |m, &w| m.max(w.abs())).min(1.0);
+
+        if max_thrust > 0.0 {
+            let scale = max_input / max_thrust;
+            for t in &mut thrusts {
+                *t *= scale;
+            }
+        }
+
+        thrusts
     }
 }

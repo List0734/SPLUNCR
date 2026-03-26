@@ -35,8 +35,12 @@ impl<M: Motor<F>> PropulsionSubsystem<M> {
 		}
 	}
 
-	pub fn allocate(&self, wrench: Wrench<F>) -> [F; NUM_THRUSTERS] {
-		self.allocator.allocate(wrench)
+	pub fn allocate(&self, wrench: Wrench<F>, bidirectional_thrust: bool) -> [F; NUM_THRUSTERS] {
+		let mut reverse_allowed = [false; NUM_THRUSTERS];
+		for (i, thruster) in self.thrusters.iter().enumerate() {
+			reverse_allowed[i] = bidirectional_thrust || thruster.bidirectional();
+		}
+		self.allocator.allocate(wrench, reverse_allowed)
 	}
 
 	pub fn set_duty_cycles(&mut self, duties: &[F; NUM_THRUSTERS]) {

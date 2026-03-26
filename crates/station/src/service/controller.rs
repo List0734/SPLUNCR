@@ -27,9 +27,10 @@ impl ControllerService {
 
 	pub fn run(mut self) {
 		while !self.context.shutdown.load(Ordering::Relaxed) {
-			let wrench = self.controller.poll(self.deadband);
+			let (wrench, bidirectional_thrust) = self.controller.poll(self.deadband);
 			*self.context.command.write().unwrap() = OperatorCommand {
 				propulsion: PropulsionCommand::OpenLoop(wrench),
+				bidirectional_thrust,
 			};
 			thread::sleep(self.poll_period);
 		}

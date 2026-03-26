@@ -7,6 +7,7 @@ use crate::platform::F;
 
 pub struct Thruster<M: Motor<F>> {
 	placement: Placement<F>,
+	bidirectional: bool,
 	motor: M,
 }
 
@@ -16,12 +17,17 @@ impl<M: Motor<F>> Thruster<M> {
 
 		Self {
 			placement,
+			bidirectional: config.bidirectional,
 			motor,
 		}
 	}
 
 	pub fn placement(&self) -> &Placement<F> {
 		&self.placement
+	}
+
+	pub fn bidirectional(&self) -> bool {
+		self.bidirectional
 	}
 
 	pub fn init(&mut self) {
@@ -42,5 +48,6 @@ impl<M: Motor<F>> Thruster<M> {
 impl<M: Motor<F>> Config<ThrusterConfig> for Thruster<M> {
 	fn update_config(&mut self, config: ThrusterConfig) {
 		self.placement = Placement::from_arrays(config.placement.position, config.placement.direction);
+		self.bidirectional = config.bidirectional;
 	}
 }

@@ -1,10 +1,11 @@
-use nalgebra::{Isometry3, RealField, Unit, Vector3, Vector6};
+use nalgebra::{Isometry3, RealField, Unit, UnitQuaternion, Vector3, Vector6};
 use serde::{Serialize, Deserialize};
 
 pub type Distance<S> = S;
 pub type Velocity<S> = S;
 pub type Acceleration<S> = S;
 
+pub type Orientation<S> = UnitQuaternion<S>;
 pub type Pose<S> = Isometry3<S>;
 #[derive(Clone, Copy, Debug)]
 pub struct Placement<S: RealField> {

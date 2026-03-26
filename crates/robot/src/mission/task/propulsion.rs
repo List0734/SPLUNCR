@@ -58,7 +58,8 @@ impl<M: Motor<F>> PropulsionTask<M> {
 	}
 
 	fn step(&mut self, dt: F) {
-		let command = self.context.command.read().unwrap().propulsion.clone();
+		let operator_command = self.context.command.read().unwrap().clone();
+		let command = operator_command.propulsion;
 		let (emergency_stop, measured_twist) = {
 			let state = self.context.state.read().unwrap();
 			(
@@ -89,7 +90,7 @@ impl<M: Motor<F>> PropulsionTask<M> {
 			}
 			PropulsionCommand::OpenLoop(wrench) => wrench,
 		};
-		let commanded = self.propulsion.allocate(wrench);
+		let commanded = self.propulsion.allocate(wrench, operator_command.bidirectional_thrust);
 		let outputs = self.regulator.thruster.update(&commanded, dt);
 		self.propulsion.set_duty_cycles(&outputs);
 

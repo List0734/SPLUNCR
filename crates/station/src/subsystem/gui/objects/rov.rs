@@ -74,7 +74,10 @@ impl RovObject {
 
         if let Some(node) = &mut self.body_node {
             let pose: Pose<F> = robot.state.perception.navigation.odometry.pose.cast();
-            node.set_local_transformation(pose);
+            node.set_local_transformation(Isometry3::from_parts(
+                Translation3::identity(),
+                pose.rotation,
+            ));
         }
     }
 }

@@ -20,12 +20,8 @@ const ACCEL_SCALE: f32 = 16384.0;
 // +/-250 deg/s default range
 const GYRO_SCALE: f32 = 131.0;
 
-const CALIBRATION_SAMPLES: usize = 200;
-const CALIBRATION_DELAY: Duration = Duration::from_millis(5);
-
 pub struct Mpu6500 {
 	i2c: I2c,
-	gyro_offset: Vector3<f32>,
 }
 
 impl Mpu6500 {
@@ -33,16 +29,13 @@ impl Mpu6500 {
 		let mut i2c = I2c::new()?;
 		i2c.set_slave_address(ADDR)?;
 
-		// Wake device
 		i2c.smbus_write_byte(PWR_MGMT_REG, 0x00)?;
 		thread::sleep(Duration::from_millis(100));
 
 		let chip_id = i2c.smbus_read_byte(CHIP_ID_REG)?;
 		assert_eq!(chip_id, EXPECTED_CHIP_ID, "MPU6500 not found, got 0x{chip_id:02X}");
 
-		let mut sensor = Self { i2c, gyro_offset: Vector3::zeros() };
-		sensor.calibrate()?;
-		Ok(sensor)
+		Ok(Self { i2c })
 	}
 
 	fn read_word(&mut self, reg: u8) -> Result<i16, rppal::i2c::Error> {
@@ -66,15 +59,6 @@ impl Sensor for Mpu6500 {
 	type Error = rppal::i2c::Error;
 
 	fn calibrate(&mut self) -> Result<(), Self::Error> {
-		let mut sum = Vector3::<f32>::zeros();
-
-		for _ in 0..CALIBRATION_SAMPLES {
-			let raw = self.read_vector(GYRO_REG)?;
-			sum += raw.cast::<f32>();
-			thread::sleep(CALIBRATION_DELAY);
-		}
-
-		self.gyro_offset = sum / CALIBRATION_SAMPLES as f32;
 		Ok(())
 	}
 }
@@ -89,7 +73,7 @@ impl Accelerometer<Vector3<f32>> for Mpu6500 {
 impl Gyroscope<Vector3<f32>> for Mpu6500 {
 	fn read_rotation(&mut self) -> Result<Vector3<f32>, Self::Error> {
 		let raw = self.read_vector(GYRO_REG)?;
-		Ok((raw.cast::<f32>() - self.gyro_offset) / GYRO_SCALE)
+		Ok(raw.cast::<f32>() / GYRO_SCALE * (std::f32::consts::PI / 180.0))
 	}
 }
 

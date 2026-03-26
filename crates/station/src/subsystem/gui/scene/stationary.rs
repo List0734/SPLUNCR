@@ -29,6 +29,8 @@ impl StationaryScene {
 
         let mut camera = ArcBall::new(eye, at);
         camera.set_up_axis(Vector3::z());
+        camera.set_dist_step(1.0 / 1.01);
+        camera.rebind_drag_button(None);
 
         Self {
             camera,
@@ -103,6 +105,7 @@ impl Scene for StationaryScene {
 
     fn update_3d(&mut self, _window: &mut Window, robot: &RobotCondition) -> SceneTransition {
         self.rov.update(robot);
+        self.camera.set_at(Point3::origin());
         SceneTransition::None
     }
 

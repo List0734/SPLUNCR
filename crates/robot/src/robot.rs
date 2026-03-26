@@ -1,13 +1,13 @@
 use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, RwLock};
 
-use crate::control::estimator::Odometry;
+use crate::control::estimator::{Attitude, Odometry};
 use crate::control::regulator::PropulsionRegulator;
 use crate::data::command::OperatorCommand;
 use crate::data::config::ConfigBundle;
 use crate::data::state::RobotState;
 use crate::hardware::interface::Hal;
-use crate::hardware::subsystem::{CommunicationSubsystem, PropulsionSubsystem, VisionSubsystem};
+use crate::hardware::subsystem::{CommunicationSubsystem, Imu, PropulsionSubsystem, VisionSubsystem};
 use crate::mission::Mission;
 use crate::mission::context::TaskContext;
 use crate::mission::task::communication::CommunicationTask;
@@ -63,14 +63,20 @@ impl Robot {
 			communication,
 			config.communication.poll_rate_hz,
 			config.communication.telemetry.rate_hz,
+			config.communication.emergency_stop_timeout_ms,
 		);
 
 		// Sensor
+		let imu = Imu::new(peripherals.imu, &config.sensor.imu, |ms| {
+			std::thread::sleep(std::time::Duration::from_millis(ms as u64));
+		});
+		let attitude = Attitude::new(&config.sensor.estimator.attitude);
 		let odometry = Odometry::new();
 		let sensor_task = SensorTask::new(
 			context.clone(),
+			attitude,
 			odometry,
-			peripherals.imu,
+			imu,
 			peripherals.atmospheric_sensor,
 			peripherals.aquatic_sensor,
 			config.sensor.loop_rate_hz,

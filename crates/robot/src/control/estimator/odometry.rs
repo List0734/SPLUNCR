@@ -1,6 +1,8 @@
 use nalgebra::Vector3;
 
-use framework::physics::kinematics::{Pose, Twist};
+use framework::control::integrators::exponential_map;
+use framework::physics::constants::STANDARD_GRAVITY;
+use framework::physics::kinematics::{Orientation, Pose, Twist};
 
 use crate::platform::Fp;
 
@@ -17,10 +19,6 @@ impl Odometry {
 		}
 	}
 
-	pub fn update(&mut self, dt: Fp) {
-		self.integrate(dt);
-	}
-
 	pub fn pose(&self) -> Pose<Fp> {
 		self.pose
 	}
@@ -29,20 +27,24 @@ impl Odometry {
 		self.twist
 	}
 
-	fn integrate(&mut self, dt: Fp) {
-		let delta = Pose::new(
-			self.twist.linear * dt,
-			self.twist.angular * dt,
-		);
-
-		self.pose *= delta;
+	pub fn integrate(&mut self, dt: Fp) {
+		exponential_map(&mut self.pose, &self.twist, dt);
 	}
 
 	pub fn apply_linear_acceleration(&mut self, acceleration: Vector3<Fp>, dt: Fp) {
 		self.twist.linear += acceleration * dt;
 	}
 
+	pub fn apply_specific_force(&mut self, specific_force: Vector3<Fp>, dt: Fp) {
+		let gravity_body = self.pose.rotation.inverse() * Vector3::z() * STANDARD_GRAVITY;
+		self.apply_linear_acceleration(specific_force - gravity_body, dt);
+	}
+
 	pub fn update_angular_velocity(&mut self, velocity: Vector3<Fp>) {
 		self.twist.angular = velocity;
+	}
+
+	pub fn update_orientation(&mut self, orientation: Orientation<Fp>) {
+		self.pose.rotation = orientation;
 	}
 }

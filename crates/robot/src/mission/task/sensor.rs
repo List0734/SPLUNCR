@@ -6,17 +6,19 @@ use nalgebra::Vector3;
 
 use framework::hardware::interface::{Accelerometer, Gyroscope, Thermometer, Barometer, Bathometer};
 
-use crate::control::estimator::Odometry;
+use crate::control::estimator::{Attitude, Odometry};
 use crate::data::state::perception::aquatic::AquaticState;
 use crate::data::state::perception::atmospheric::AtmosphericState;
 use crate::data::state::perception::navigation::odometry::OdometryEstimatorState;
+use crate::hardware::subsystem::Imu;
 use crate::mission::context::TaskContext;
 use crate::platform::Fp;
 
 pub struct SensorTask<I, A, W> {
 	context: TaskContext,
+	attitude: Attitude,
 	odometry: Odometry,
-	imu: I,
+	imu: Imu<I>,
 	atmospheric_sensor: A,
 	aquatic_sensor: W,
 	period: Duration,
@@ -30,14 +32,16 @@ where
 {
 	pub fn new(
 		context: TaskContext,
+		attitude: Attitude,
 		odometry: Odometry,
-		imu: I,
+		imu: Imu<I>,
 		atmospheric_sensor: A,
 		aquatic_sensor: W,
 		rate_hz: u32,
 	) -> Self {
 		Self {
 			context,
+			attitude,
 			odometry,
 			imu,
 			atmospheric_sensor,
@@ -46,7 +50,15 @@ where
 		}
 	}
 
+	fn initialize(&mut self) {
+		if let Some(accel) = self.imu.read_acceleration() {
+			self.attitude.initialize(accel.cast::<Fp>());
+		}
+	}
+
 	pub fn run(mut self) {
+		self.initialize();
+
 		let mut last = Instant::now();
 
 		while !self.context.shutdown.load(Ordering::Relaxed) {
@@ -64,13 +76,16 @@ where
 	}
 
 	fn step(&mut self, dt: Fp) {
-		if let Ok(accel) = self.imu.read_acceleration() {
-			self.odometry.apply_linear_acceleration(accel.cast::<Fp>(), dt);
+		let acceleration = self.imu.read_acceleration().map(|a| a.cast::<Fp>());
+		let rotation = self.imu.read_rotation().map(|r| r.cast::<Fp>());
+
+		if let (Some(acceleration), Some(rotation)) = (acceleration, rotation) {
+			self.attitude.update(acceleration, rotation, dt);
+			self.odometry.update_orientation(self.attitude.orientation());
+
+			self.odometry.apply_specific_force(acceleration, dt);
 		}
-		if let Ok(gyro) = self.imu.read_rotation() {
-			self.odometry.update_angular_velocity(gyro.cast::<Fp>());
-		}
-		self.odometry.update(dt);
+		self.odometry.integrate(dt);
 
 		let atmospheric = AtmosphericState {
 			temperature: self.atmospheric_sensor.read_temperature().unwrap_or(0.0),

@@ -1,11 +1,11 @@
 use std::net::UdpSocket;
 use std::sync::{Arc, Mutex};
 
-use crate::data::condition::RobotCondition;
+use robot::data::condition::RobotCondition;
 use crate::data::config::StationConfig;
 use crate::service::Services;
 use crate::service::communication::CommunicationService;
-use crate::service::context::StationContext;
+use crate::service::context::ServiceContext;
 use crate::service::controller::ControllerService;
 use crate::service::video::VideoService;
 use crate::subsystem::communication::Communication;
@@ -15,15 +15,15 @@ use crate::subsystem::gui::scene::ConnectingScene;
 use crate::subsystem::video::Video;
 
 pub struct Station {
-	context: StationContext,
+	context: ServiceContext,
 	services: Services,
 	gui: Gui,
 }
 
 impl Station {
-	pub fn new(condition: Arc<Mutex<RobotCondition>>, config: StationConfig) -> Self {
+	pub fn new(robot_condition: Arc<Mutex<RobotCondition>>, config: StationConfig) -> Self {
 		// Context
-		let context = StationContext::new(condition);
+		let context = ServiceContext::new(robot_condition);
 
 		// Sockets
 		let telemetry_socket = UdpSocket::bind(&config.communication.telemetry.listen_address)
@@ -69,14 +69,14 @@ impl Station {
 
 		// GUI
 		let initial_scene = ConnectingScene::new(Arc::clone(&context.state));
-		let robot_snapshot = context.condition.lock().unwrap().clone();
+		let robot_snapshot = context.robot.lock().unwrap().clone();
 		let gui = Gui::new(initial_scene, &robot_snapshot, Arc::clone(&context.video_frame));
 
 		Self { context, services, gui }
 	}
 
 	pub async fn run(&mut self) {
-		self.gui.run(Arc::clone(&self.context.condition)).await;
+		self.gui.run(Arc::clone(&self.context.robot)).await;
 	}
 
 	pub fn shutdown(self) {

@@ -14,10 +14,8 @@ listen_address = "127.0.0.1:9002"
 
 [environment]
 water_temperature = 15.0
-
-[vehicle.dynamics]
-mass = 10.0
-drag = 5.0
+water_density = 1025.0
+surface_pressure = 1013.25
 
 [vehicle.hardware.imu]
 noise_stddev = 0.01

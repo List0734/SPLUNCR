@@ -1,10 +1,10 @@
 use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, RwLock};
 
-use crate::control::estimator::{Attitude, Odometry};
+use crate::control::estimator::{Attitude, HeaveEstimator};
 use crate::control::regulator::PropulsionRegulator;
 use crate::data::command::OperatorCommand;
-use crate::data::config::ConfigBundle;
+use crate::data::config::RobotConfig;
 use crate::data::state::RobotState;
 use crate::hardware::interface::Hal;
 use crate::hardware::subsystem::{CommunicationSubsystem, Imu, PropulsionSubsystem, VisionSubsystem};
@@ -20,7 +20,7 @@ pub struct Robot {
 }
 
 impl Robot {
-	pub fn new<H: Hal>(config: ConfigBundle) -> Self
+	pub fn new<H: Hal>(config: RobotConfig) -> Self
 	where
 		H::Motor: Send + 'static,
 		H::Camera: Send + 'static,
@@ -71,11 +71,11 @@ impl Robot {
 			std::thread::sleep(std::time::Duration::from_millis(ms as u64));
 		});
 		let attitude = Attitude::new(&config.sensor.estimator.attitude);
-		let odometry = Odometry::new();
+		let heave = HeaveEstimator::new();
 		let sensor_task = SensorTask::new(
 			context.clone(),
 			attitude,
-			odometry,
+			heave,
 			imu,
 			peripherals.atmospheric_sensor,
 			peripherals.aquatic_sensor,

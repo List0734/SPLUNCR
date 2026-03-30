@@ -60,11 +60,11 @@ impl<M: Motor<F>> PropulsionTask<M> {
 	fn step(&mut self, dt: F) {
 		let operator_command = self.context.command.read().unwrap().clone();
 		let command = operator_command.propulsion;
-		let (emergency_stop, measured_twist) = {
+		let (emergency_stop, odometry) = {
 			let state = self.context.state.read().unwrap();
 			(
 				state.autonomous.emergency_stop,
-				state.perception.navigation.odometry.twist,
+				state.perception.navigation.odometry,
 			)
 		};
 
@@ -72,6 +72,8 @@ impl<M: Motor<F>> PropulsionTask<M> {
 			self.propulsion.set_thrust_fractions(&[0.0; NUM_THRUSTERS]);
 			return;
 		}
+
+		let measured_twist = odometry.twist;
 
 		let wrench = match command {
 			PropulsionCommand::Velocity(setpoint) => {
@@ -89,7 +91,31 @@ impl<M: Motor<F>> PropulsionTask<M> {
 				Wrench { force: output.linear, torque: output.angular }
 			}
 			PropulsionCommand::OpenLoop(wrench) => wrench,
+			PropulsionCommand::DepthHold(depth_hold) => {
+				let rotation = odometry.pose.rotation;
+				let world_vel = rotation * measured_twist.linear;
+				let measured_depth_rate = world_vel.z as F;
+				let heave_force = self.regulator.depth_hold.update(depth_hold.depth_rate, measured_depth_rate, dt);
+				let world_force = nalgebra::Vector3::new(0.0, 0.0, heave_force as f64);
+				let body_heave = (rotation.inverse() * world_force).cast::<F>();
+				Wrench {
+					force: nalgebra::Vector3::new(depth_hold.wrench.force.x, depth_hold.wrench.force.y, 0.0) + body_heave,
+					torque: depth_hold.wrench.torque,
+				}
+			}
 		};
+
+		let wrench = if operator_command.auto_level {
+			let (roll, pitch, _) = odometry.pose.rotation.euler_angles();
+			let (roll_torque, pitch_torque) = self.regulator.auto_level.update(roll as F, pitch as F, dt);
+			Wrench {
+				force: wrench.force,
+				torque: nalgebra::Vector3::new(roll_torque, pitch_torque, wrench.torque.z),
+			}
+		} else {
+			wrench
+		};
+
 		let commanded = self.propulsion.allocate(wrench, operator_command.bidirectional_thrust);
 		let outputs = self.regulator.thruster.update(&commanded, dt);
 		self.propulsion.set_thrust_fractions(&outputs);

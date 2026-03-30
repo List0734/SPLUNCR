@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use egui::Context;
 use kiss3d::{camera::ArcBall, scene::SceneNode, window::Window};
 use nalgebra::{Point3, UnitQuaternion, Vector3};
-use crate::data::condition::RobotCondition;
+use robot::data::condition::RobotCondition;
 
 use crate::data::video::VideoFrame;
 

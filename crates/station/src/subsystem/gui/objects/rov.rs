@@ -3,7 +3,7 @@ use nalgebra::{Isometry3, Translation3, Unit, UnitQuaternion, Vector3};
 use robot::platform::F;
 use framework::physics::kinematics::Pose;
 
-use crate::data::condition::RobotCondition;
+use robot::data::condition::RobotCondition;
 
 const THRUSTER_CONE_SIZE: f32 = 0.5;
 

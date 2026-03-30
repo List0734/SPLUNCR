@@ -6,15 +6,15 @@ pub mod video;
 use std::sync::atomic::Ordering;
 use std::thread::{self, JoinHandle};
 
-use context::StationContext;
+use context::ServiceContext;
 
 pub struct Services {
-	context: StationContext,
+	context: ServiceContext,
 	handles: Vec<JoinHandle<()>>,
 }
 
 impl Services {
-	pub fn launch(context: StationContext, tasks: Vec<Box<dyn FnOnce() + Send>>) -> Self {
+	pub fn launch(context: ServiceContext, tasks: Vec<Box<dyn FnOnce() + Send>>) -> Self {
 		let handles = tasks
 			.into_iter()
 			.map(|task| thread::spawn(task))

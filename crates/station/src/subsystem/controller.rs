@@ -2,11 +2,20 @@ use gilrs::{Axis, Button, GamepadId, Gilrs};
 use framework::physics::dynamics::Wrench;
 use nalgebra::Vector3;
 
+pub struct ControllerInput {
+	pub wrench: Wrench<f32>,
+	pub bidirectional_thrust: bool,
+	pub depth_hold: bool,
+	pub auto_level: bool,
+}
+
 pub struct Controller {
 	gilrs: Gilrs,
 	active_gamepad: Option<GamepadId>,
 	bidirectional_thrust: bool,
 	bidirectional_thrust_prev: bool,
+	depth_hold: bool,
+	depth_hold_prev: bool,
 }
 
 impl Controller {
@@ -18,10 +27,12 @@ impl Controller {
 			active_gamepad,
 			bidirectional_thrust: false,
 			bidirectional_thrust_prev: false,
+			depth_hold: false,
+			depth_hold_prev: false,
 		}
 	}
 
-	pub fn poll(&mut self, deadband: f32) -> (Wrench<f32>, bool) {
+	pub fn poll(&mut self, deadband: f32) -> ControllerInput {
 		while let Some(event) = self.gilrs.next_event() {
 			if self.active_gamepad.is_none() {
 				self.active_gamepad = Some(event.id);
@@ -29,13 +40,23 @@ impl Controller {
 		}
 
 		let Some(id) = self.active_gamepad else {
-			return (Wrench::zero(), self.bidirectional_thrust);
+			return ControllerInput {
+				wrench: Wrench::zero(),
+				bidirectional_thrust: self.bidirectional_thrust,
+				depth_hold: self.depth_hold,
+				auto_level: false,
+			};
 		};
 
 		let gamepad = self.gilrs.gamepad(id);
 		if !gamepad.is_connected() {
 			self.active_gamepad = None;
-			return (Wrench::zero(), self.bidirectional_thrust);
+			return ControllerInput {
+				wrench: Wrench::zero(),
+				bidirectional_thrust: self.bidirectional_thrust,
+				depth_hold: self.depth_hold,
+				auto_level: false,
+			};
 		}
 
 		let axis = |a: Axis| -> f32 {
@@ -45,11 +66,17 @@ impl Controller {
 
 		let btn = |b: Button| -> f32 { if gamepad.is_pressed(b) { 1.0 } else { 0.0 } };
 
-		let toggle_pressed = gamepad.is_pressed(Button::DPadUp);
-		if toggle_pressed && !self.bidirectional_thrust_prev {
+		let bidirectional_pressed = gamepad.is_pressed(Button::DPadUp);
+		if bidirectional_pressed && !self.bidirectional_thrust_prev {
 			self.bidirectional_thrust = !self.bidirectional_thrust;
 		}
-		self.bidirectional_thrust_prev = toggle_pressed;
+		self.bidirectional_thrust_prev = bidirectional_pressed;
+
+		let depth_hold_pressed = gamepad.is_pressed(Button::DPadDown);
+		if depth_hold_pressed && !self.depth_hold_prev {
+			self.depth_hold = !self.depth_hold;
+		}
+		self.depth_hold_prev = depth_hold_pressed;
 
 		let wrench = Wrench {
 			force: Vector3::new(
@@ -64,6 +91,11 @@ impl Controller {
 			),
 		};
 
-		(wrench, self.bidirectional_thrust)
+		ControllerInput {
+			wrench,
+			bidirectional_thrust: self.bidirectional_thrust,
+			depth_hold: self.depth_hold,
+			auto_level: gamepad.is_pressed(Button::South),
+		}
 	}
 }

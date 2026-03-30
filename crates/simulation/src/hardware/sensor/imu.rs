@@ -1,12 +1,17 @@
 use nalgebra::Vector3;
 
-use framework::{hardware::interface::{Accelerometer, Gyroscope, Sensor}, physics::constants::STANDARD_GRAVITY};
+use framework::hardware::interface::{Accelerometer, Gyroscope, Sensor};
+use framework::physics::constants::STANDARD_GRAVITY;
 
-pub struct SimImu;
+use crate::data::context::SimContext;
+
+pub struct SimImu {
+	context: SimContext,
+}
 
 impl SimImu {
-	pub fn new() -> Self {
-		Self
+	pub fn new(context: SimContext) -> Self {
+		Self { context }
 	}
 }
 
@@ -20,12 +25,17 @@ impl Sensor for SimImu {
 
 impl Accelerometer<Vector3<f32>> for SimImu {
 	fn read_acceleration(&mut self) -> Result<Vector3<f32>, Self::Error> {
-		Ok(Vector3::new(0.0, 0.0, -STANDARD_GRAVITY as f32))
+		let condition = self.context.condition.read().unwrap();
+		let gravity_world = Vector3::new(0.0, 0.0, -STANDARD_GRAVITY);
+		let specific_force_world = condition.state.body.acceleration - gravity_world;
+		let specific_force_body = condition.state.body.pose.rotation.inverse() * specific_force_world;
+		Ok((specific_force_body / STANDARD_GRAVITY).cast())
 	}
 }
 
 impl Gyroscope<Vector3<f32>> for SimImu {
 	fn read_rotation(&mut self) -> Result<Vector3<f32>, Self::Error> {
-		Ok(Vector3::zeros())
+		let condition = self.context.condition.read().unwrap();
+		Ok(condition.state.body.twist.angular.cast())
 	}
 }

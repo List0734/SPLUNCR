@@ -3,7 +3,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use robot::Robot;
-use robot::data::config::ConfigBundle;
+use robot::data::config::RobotConfig;
 use robot::hardware::driver::RpiHal;
 use framework::data::config::load_config;
 
@@ -12,7 +12,7 @@ fn main() {
 	config_path.pop();
 	config_path.push("config.toml");
 
-	let config: ConfigBundle = load_config(config_path.to_str().expect("invalid config path"));
+	let config: RobotConfig = load_config(config_path.to_str().expect("invalid config path"));
 	println!("configuration loaded from {:?}", config_path);
 
 	let robot = Robot::new::<RpiHal>(config);

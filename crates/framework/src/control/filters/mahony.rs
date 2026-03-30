@@ -23,13 +23,14 @@ impl<S: RealField + Copy> Mahony<S> {
 	}
 
 	pub fn update(&mut self, accel: Vector3<S>, gyro: Vector3<S>, dt: S) {
-		let a = accel.normalize();
-		let v = self.orientation.inverse() * Vector3::z();
-
-		let error = a.cross(&v);
-
-		self.integral_feedback += error * self.config.ki * dt;
-		let corrected = gyro + error * self.config.kp + self.integral_feedback;
+		let corrected = if let Some(a) = accel.try_normalize(S::default_epsilon()) {
+			let v = self.orientation.inverse() * Vector3::z();
+			let error = a.cross(&v);
+			self.integral_feedback += error * self.config.ki * dt;
+			gyro + error * self.config.kp + self.integral_feedback
+		} else {
+			gyro + self.integral_feedback
+		};
 
 		self.orientation *= UnitQuaternion::new(corrected * dt);
 	}

@@ -4,7 +4,7 @@ use egui::Context;
 use kiss3d::{camera::ArcBall, window::Window};
 use nalgebra::{Point3, Vector3};
 
-use crate::data::condition::RobotCondition;
+use robot::data::condition::RobotCondition;
 use crate::data::state::StationState;
 use crate::data::video::VideoFrame;
 

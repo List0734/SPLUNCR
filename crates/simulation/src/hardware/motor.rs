@@ -1,25 +1,21 @@
 use framework::hardware::interface::Motor;
 use robot::platform::F;
 
+use crate::data::context::SimContext;
+
 pub struct SimMotor {
-	duty_cycle: F,
+	context: SimContext,
+	index: usize,
 	enabled: bool,
 }
 
 impl SimMotor {
-	pub fn new() -> Self {
+	pub fn new(context: SimContext, index: usize) -> Self {
 		Self {
-			duty_cycle: 0.0,
+			context,
+			index,
 			enabled: false,
 		}
-	}
-
-	pub fn duty_cycle(&self) -> F {
-		self.duty_cycle
-	}
-
-	pub fn is_enabled(&self) -> bool {
-		self.enabled
 	}
 }
 
@@ -27,20 +23,21 @@ impl Motor<F> for SimMotor {
 	type Error = std::convert::Infallible;
 
 	fn init(&mut self) -> Result<(), Self::Error> {
-		self.duty_cycle = 0.0;
+		self.context.condition.write().unwrap().state.actuators.propulsion.thruster_duties[self.index] = 0.0;
 		Ok(())
 	}
 
 	fn set_duty_cycle(&mut self, duty_cycle: F) -> Result<(), Self::Error> {
 		if self.enabled {
-			self.duty_cycle = duty_cycle.clamp(-1.0, 1.0);
+			self.context.condition.write().unwrap().state.actuators.propulsion.thruster_duties[self.index] =
+				duty_cycle.clamp(-1.0, 1.0);
 		}
 		Ok(())
 	}
 
 	fn set_enabled(&mut self, enabled: bool) -> Result<(), Self::Error> {
 		if !enabled {
-			self.duty_cycle = 0.0;
+			self.context.condition.write().unwrap().state.actuators.propulsion.thruster_duties[self.index] = 0.0;
 		}
 		self.enabled = enabled;
 		Ok(())

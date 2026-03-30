@@ -1,20 +1,17 @@
-pub mod state;
-pub use state::StateBundle;
-
-pub mod config;
-pub use config::ConfigBundle;
+use super::config::RobotConfig;
+use super::state::RobotState;
 
 #[derive(Clone, Debug)]
 pub struct RobotCondition {
-    pub config: ConfigBundle,
-    pub state: StateBundle,
+	pub config: RobotConfig,
+	pub state: RobotState,
 }
 
 impl RobotCondition {
-    pub fn default(config: ConfigBundle) -> Self {
-        Self {
-            config,
-            state: StateBundle::default(),
-        }
-    }
+	pub fn new(config: RobotConfig) -> Self {
+		Self {
+			config,
+			state: RobotState::default(),
+		}
+	}
 }

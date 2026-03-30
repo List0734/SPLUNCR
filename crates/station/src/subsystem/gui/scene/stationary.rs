@@ -4,22 +4,23 @@ use std::time::Instant;
 use egui::{Context, ColorImage, TextureHandle, TextureOptions};
 use kiss3d::{camera::ArcBall, window::Window};
 use nalgebra::{Point3, Vector3};
-use crate::data::condition::RobotCondition;
-
+use robot::data::condition::RobotCondition;
 use crate::data::video::VideoFrame;
 
-use super::super::objects::RovObject;
+use super::super::objects::{GridObject, RovObject};
 use super::super::screens::{config_screen, state_screen, video_screen};
 use super::{Scene, SceneTransition};
 
 pub struct StationaryScene {
     camera: ArcBall,
     rov: RovObject,
+    grid: GridObject,
     video_texture: Option<TextureHandle>,
     frame_count: u32,
     fps_timer: Instant,
     fps: f32,
     latency_ms: f32,
+    last_frame: Instant,
 }
 
 impl StationaryScene {
@@ -35,11 +36,13 @@ impl StationaryScene {
         Self {
             camera,
             rov: RovObject::new(),
+            grid: GridObject::new(4.0, 6),
             video_texture: None,
             frame_count: 0,
             fps_timer: Instant::now(),
             fps: 0.0,
             latency_ms: 0.0,
+            last_frame: Instant::now(),
         }
     }
 }
@@ -103,9 +106,16 @@ impl Scene for StationaryScene {
         SceneTransition::None
     }
 
-    fn update_3d(&mut self, _window: &mut Window, robot: &RobotCondition) -> SceneTransition {
+    fn update_3d(&mut self, window: &mut Window, robot: &RobotCondition) -> SceneTransition {
         self.rov.update(robot);
         self.camera.set_at(Point3::origin());
+
+        let dt = self.last_frame.elapsed().as_secs_f32();
+        self.last_frame = Instant::now();
+        let velocity: Vector3<f32> = robot.state.perception.navigation.odometry.twist.linear.cast();
+        self.grid.shift(-velocity * dt);
+        self.grid.draw(window);
+
         SceneTransition::None
     }
 

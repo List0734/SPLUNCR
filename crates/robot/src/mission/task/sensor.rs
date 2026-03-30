@@ -5,11 +5,12 @@ use std::time::{Duration, Instant};
 use nalgebra::Vector3;
 
 use framework::hardware::interface::{Accelerometer, Gyroscope, Thermometer, Barometer, Bathometer};
+use framework::physics::kinematics::{Pose, Twist};
 
-use crate::control::estimator::{Attitude, Odometry};
+use crate::control::estimator::{Attitude, HeaveEstimator};
 use crate::data::state::perception::aquatic::AquaticState;
 use crate::data::state::perception::atmospheric::AtmosphericState;
-use crate::data::state::perception::navigation::odometry::OdometryEstimatorState;
+use crate::data::state::perception::navigation::odometry::OdometryState;
 use crate::hardware::subsystem::Imu;
 use crate::mission::context::TaskContext;
 use crate::platform::Fp;
@@ -17,7 +18,7 @@ use crate::platform::Fp;
 pub struct SensorTask<I, A, W> {
 	context: TaskContext,
 	attitude: Attitude,
-	odometry: Odometry,
+	heave: HeaveEstimator,
 	imu: Imu<I>,
 	atmospheric_sensor: A,
 	aquatic_sensor: W,
@@ -33,7 +34,7 @@ where
 	pub fn new(
 		context: TaskContext,
 		attitude: Attitude,
-		odometry: Odometry,
+		heave: HeaveEstimator,
 		imu: Imu<I>,
 		atmospheric_sensor: A,
 		aquatic_sensor: W,
@@ -42,7 +43,7 @@ where
 		Self {
 			context,
 			attitude,
-			odometry,
+			heave,
 			imu,
 			atmospheric_sensor,
 			aquatic_sensor,
@@ -81,11 +82,19 @@ where
 
 		if let (Some(acceleration), Some(rotation)) = (acceleration, rotation) {
 			self.attitude.update(acceleration, rotation, dt);
-			self.odometry.update_orientation(self.attitude.orientation());
-
-			self.odometry.apply_specific_force(acceleration, dt);
 		}
-		self.odometry.integrate(dt);
+
+		let depth = self.aquatic_sensor.read_depth().unwrap_or(0.0) as Fp;
+		self.heave.update(depth, dt);
+
+		let mut pose = Pose::<Fp>::identity();
+		pose.rotation = self.attitude.orientation();
+		pose.translation.z = -depth;
+
+		let twist = Twist {
+			linear: Vector3::new(0.0, 0.0, -self.heave.velocity()),
+			angular: rotation.unwrap_or_default(),
+		};
 
 		let atmospheric = AtmosphericState {
 			temperature: self.atmospheric_sensor.read_temperature().unwrap_or(0.0),
@@ -93,13 +102,9 @@ where
 		};
 
 		let mut state = self.context.state.write().unwrap();
-		state.perception.navigation.odometry = OdometryEstimatorState {
-			pose: self.odometry.pose(),
-			twist: self.odometry.twist(),
-		};
+		state.perception.navigation.odometry = OdometryState { pose, twist };
 		state.perception.atmospheric = atmospheric;
 		state.perception.aquatic = AquaticState {
-			depth: self.aquatic_sensor.read_depth().unwrap_or(0.0),
 			pressure: self.aquatic_sensor.read_pressure().unwrap_or(0.0),
 			temperature: self.aquatic_sensor.read_temperature().unwrap_or(0.0),
 		};

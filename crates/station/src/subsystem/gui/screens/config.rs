@@ -1,5 +1,5 @@
 use egui::{CollapsingHeader, Ui};
-use robot::data::config::ConfigBundle;
+use robot::data::config::RobotConfig;
 use serde_json::Value;
 
 // Recursive function to render any serde_json::Value as a tree
@@ -34,13 +34,13 @@ fn render_value(ui: &mut Ui, name: &str, value: &Value) {
     }
 }
 
-pub fn config_screen(ui: &mut Ui, config: &ConfigBundle) {
+pub fn config_screen(ui: &mut Ui, config: &RobotConfig) {
     // Serialize into json
     let value = serde_json::to_value(config).unwrap();
 
     egui::ScrollArea::vertical()
         .max_height(ui.available_height())
         .show(ui, |ui| {
-            render_value(ui, "ConfigBundle", &value);
+            render_value(ui, "RobotConfig", &value);
         });
 }

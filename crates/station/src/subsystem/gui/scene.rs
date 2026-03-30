@@ -7,7 +7,7 @@ mod cube;
 pub use cube::CubeScene;
 
 mod stationary;
-use crate::data::condition::RobotCondition;
+use robot::data::condition::RobotCondition;
 pub use stationary::StationaryScene;
 
 mod connecting;

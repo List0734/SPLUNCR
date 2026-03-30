@@ -5,7 +5,8 @@ use kiss3d::{light::Light, window::Window};
 pub mod scene;
 use scene::Scene;
 
-use crate::data::{condition::RobotCondition, video::VideoFrame};
+use robot::data::condition::RobotCondition;
+use crate::data::video::VideoFrame;
 use scene::SceneTransition;
 
 pub mod objects;

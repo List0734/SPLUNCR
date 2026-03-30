@@ -64,16 +64,27 @@ impl Allocator {
         let wrench_vec = wrench.as_vector();
         let mut thrusts: [F; NUM_THRUSTERS] = *(&self.pseudo_inverse * wrench_vec).as_ref();
 
+        let mut scale = 1.0_f32;
         for i in 0..NUM_THRUSTERS {
-            if !reverse_allowed[i] {
-                thrusts[i] = thrusts[i].max(0.0);
-            } else {
-                thrusts[i] = thrusts[i].max(-self.reverse_limits[i]);
+            if thrusts[i] > 1.0 {
+                scale = scale.min(1.0 / thrusts[i]);
+            } else if thrusts[i] < 0.0 {
+                let limit = if reverse_allowed[i] { self.reverse_limits[i] } else { 0.0 };
+                if limit > 0.0 && -thrusts[i] > limit {
+                    scale = scale.min(limit / -thrusts[i]);
+                }
+            }
+        }
+        if scale < 1.0 {
+            for t in &mut thrusts {
+                *t *= scale;
             }
         }
 
-        for t in &mut thrusts {
-            *t = t.clamp(-1.0, 1.0);
+        for i in 0..NUM_THRUSTERS {
+            if !reverse_allowed[i] {
+                thrusts[i] = thrusts[i].max(0.0);
+            }
         }
 
         thrusts

@@ -1,4 +1,4 @@
-use robot::data::config::ConfigBundle;
+use robot::data::config::RobotConfig;
 use station::data::config::StationConfig;
 use framework::data::config::{load_raw, load_with_overrides};
 use simulation::{Simulation, data::config::SimConfig};
@@ -7,7 +7,7 @@ use simulation::{Simulation, data::config::SimConfig};
 async fn main() {
 	let simulation_config = load_raw(concat!(env!("CARGO_MANIFEST_DIR"), "/config.toml"));
 
-	let robot_config: ConfigBundle = load_with_overrides(
+	let robot_config: RobotConfig = load_with_overrides(
 		concat!(env!("CARGO_MANIFEST_DIR"), "/../robot/config.toml"),
 		simulation_config.get("overrides").and_then(|o| o.get("robot")),
 	);

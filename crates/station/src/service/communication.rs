@@ -5,10 +5,10 @@ use std::time::{Duration, Instant};
 use crate::data::config::StationCommunicationConfig;
 use crate::subsystem::communication::Communication;
 
-use super::context::StationContext;
+use super::context::ServiceContext;
 
 pub struct CommunicationService {
-	context: StationContext,
+	context: ServiceContext,
 	communication: Communication,
 	poll_period: Duration,
 	send_period: Duration,
@@ -16,7 +16,7 @@ pub struct CommunicationService {
 }
 
 impl CommunicationService {
-	pub fn new(context: StationContext, communication: Communication, config: &StationCommunicationConfig) -> Self {
+	pub fn new(context: ServiceContext, communication: Communication, config: &StationCommunicationConfig) -> Self {
 		Self {
 			context,
 			communication,
@@ -33,7 +33,7 @@ impl CommunicationService {
 
 		while !self.context.shutdown.load(Ordering::Relaxed) {
 			if let Some(state) = self.communication.receive_telemetry(&mut buf) {
-				self.context.condition.lock().unwrap().state = state;
+				self.context.robot.lock().unwrap().state = state;
 			}
 
 			if self.communication.is_connected() {

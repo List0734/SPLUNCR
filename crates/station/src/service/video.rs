@@ -4,16 +4,16 @@ use std::time::Duration;
 
 use crate::subsystem::video::{Decoder, Video};
 
-use super::context::StationContext;
+use super::context::ServiceContext;
 
 pub struct VideoService {
-	context: StationContext,
+	context: ServiceContext,
 	video: Video,
 	poll_period: Duration,
 }
 
 impl VideoService {
-	pub fn new(context: StationContext, video: Video, poll_rate_hz: u32) -> Self {
+	pub fn new(context: ServiceContext, video: Video, poll_rate_hz: u32) -> Self {
 		Self {
 			context,
 			video,

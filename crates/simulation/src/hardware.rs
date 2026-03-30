@@ -5,7 +5,7 @@ pub use motor::SimMotor;
 pub use sensor::{SimImu, SimAtmosphericSensor, SimAquaticSensor};
 
 use robot::{
-	data::config::ConfigBundle,
+	data::config::RobotConfig,
 	hardware::{
 		interface::{Hal, Peripherals},
 		driver::{
@@ -13,8 +13,10 @@ use robot::{
 			socket::{TcpDriver, UdpDriver},
 		},
 	},
-	platform::subsystem::propulsion::NUM_THRUSTERS,
 };
+
+use crate::data::context::SimContext;
+use crate::simulator::Simulator;
 
 pub struct SimHal;
 
@@ -28,8 +30,11 @@ impl Hal for SimHal {
 	type TelemetryTransport = UdpDriver;
 	type VideoTransport = UdpDriver;
 
-	fn init(config: &ConfigBundle) -> Peripherals<Self> {
-		let motors = [(); NUM_THRUSTERS].map(|_| SimMotor::new());
+	fn init(config: &RobotConfig) -> Peripherals<Self> {
+		let condition = Simulator::shared_condition();
+		let context = SimContext::new(condition, config.clone());
+
+		let motors = core::array::from_fn(|i| SimMotor::new(context.clone(), i));
 
 		let camera = V4lCamera::new(
 			&config.vision.camera.device,
@@ -56,9 +61,9 @@ impl Hal for SimHal {
 		Peripherals {
 			motors,
 			camera,
-			imu: SimImu::new(),
+			imu: SimImu::new(context.clone()),
 			atmospheric_sensor: SimAtmosphericSensor::new(),
-			aquatic_sensor: SimAquaticSensor::new(),
+			aquatic_sensor: SimAquaticSensor::new(context),
 			command_transport,
 			telemetry_transport,
 			video_transport,

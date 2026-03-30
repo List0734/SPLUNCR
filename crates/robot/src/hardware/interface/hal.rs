@@ -2,7 +2,7 @@ use nalgebra::Vector3;
 
 use framework::hardware::interface::{Camera, Motor, Stream, Datagram, Accelerometer, Gyroscope, Thermometer, Barometer, Bathometer};
 
-use crate::data::config::ConfigBundle;
+use crate::data::config::RobotConfig;
 use crate::platform::F;
 use super::Peripherals;
 
@@ -16,5 +16,5 @@ pub trait Hal {
 	type TelemetryTransport: Datagram;
 	type VideoTransport: Datagram;
 
-	fn init(config: &ConfigBundle) -> Peripherals<Self> where Self: Sized;
+	fn init(config: &RobotConfig) -> Peripherals<Self> where Self: Sized;
 }

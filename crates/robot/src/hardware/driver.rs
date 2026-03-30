@@ -12,7 +12,7 @@ pub mod socket;
 
 #[cfg(feature = "rpi")]
 use crate::{
-	data::config::ConfigBundle,
+	data::config::RobotConfig,
 	hardware::interface::{Hal, Peripherals},
 };
 
@@ -30,7 +30,7 @@ impl Hal for RpiHal {
 	type TelemetryTransport = socket::UdpDriver;
 	type VideoTransport = socket::UdpDriver;
 
-	fn init(config: &ConfigBundle) -> Peripherals<Self> {
+	fn init(config: &RobotConfig) -> Peripherals<Self> {
 		let motors = config.propulsion.thrusters
 			.map(|thruster| {
 				motor::ZmrEsc::new(thruster.gpio_pin).expect("failed to initialize motor")

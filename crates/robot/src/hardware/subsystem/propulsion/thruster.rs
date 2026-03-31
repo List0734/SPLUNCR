@@ -7,7 +7,6 @@ use crate::platform::F;
 
 pub struct Thruster<M: Motor<F>> {
 	placement: Placement<F>,
-	bidirectional: bool,
 	max_force: MaxForce,
 	motor: M,
 }
@@ -19,7 +18,6 @@ impl<M: Motor<F>> Thruster<M> {
 
 		Self {
 			placement,
-			bidirectional: config.bidirectional,
 			max_force,
 			motor,
 		}
@@ -27,10 +25,6 @@ impl<M: Motor<F>> Thruster<M> {
 
 	pub fn placement(&self) -> &Placement<F> {
 		&self.placement
-	}
-
-	pub fn bidirectional(&self) -> bool {
-		self.bidirectional
 	}
 
 	pub fn max_force(&self) -> MaxForce {
@@ -42,12 +36,11 @@ impl<M: Motor<F>> Thruster<M> {
 		self.motor.set_enabled(true).expect("failed to enable motor");
 	}
 
-	pub fn set_thrust_fraction(&mut self, fraction: F) {
-		let duty = if fraction >= 0.0 {
-			fraction.sqrt()
+	pub fn set_force(&mut self, force: F) {
+		let duty = if force >= 0.0 {
+			(force / self.max_force.forward).clamp(0.0, 1.0).sqrt()
 		} else {
-			let reverse_fraction = (-fraction) * self.max_force.forward / self.max_force.reverse;
-			-reverse_fraction.min(1.0).sqrt()
+			-((-force) / self.max_force.reverse).clamp(0.0, 1.0).sqrt()
 		};
 		let _ = self.motor.set_duty_cycle(duty);
 	}
@@ -61,7 +54,6 @@ impl<M: Motor<F>> Thruster<M> {
 impl<M: Motor<F>> Config<ThrusterConfig> for Thruster<M> {
 	fn update_config(&mut self, config: ThrusterConfig) {
 		self.placement = Placement::from_arrays(config.placement.position, config.placement.direction);
-		self.bidirectional = config.bidirectional;
 		self.max_force = config.max_force.expect("thruster max_force must be resolved before update");
 	}
 }

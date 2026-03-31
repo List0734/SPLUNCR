@@ -2,7 +2,7 @@ use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 
-use robot::data::command::{DepthHoldCommand, OperatorCommand, PropulsionCommand};
+use robot::data::command::{StabilizedCommand, OperatorCommand, PropulsionCommand};
 
 use crate::subsystem::controller::Controller;
 
@@ -29,8 +29,8 @@ impl ControllerService {
 		while !self.context.shutdown.load(Ordering::Relaxed) {
 			let input = self.controller.poll(self.deadband);
 
-			let propulsion = if input.depth_hold {
-				PropulsionCommand::DepthHold(DepthHoldCommand {
+			let propulsion = if input.stabilized {
+				PropulsionCommand::Stabilized(StabilizedCommand {
 					wrench: input.wrench,
 					depth_rate: input.wrench.force.z,
 				})
@@ -40,7 +40,6 @@ impl ControllerService {
 
 			*self.context.command.write().unwrap() = OperatorCommand {
 				propulsion,
-				bidirectional_thrust: input.bidirectional_thrust,
 				auto_level: input.auto_level,
 			};
 			thread::sleep(self.poll_period);

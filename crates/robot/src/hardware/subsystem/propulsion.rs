@@ -35,17 +35,17 @@ impl<M: Motor<F>> PropulsionSubsystem<M> {
 		}
 	}
 
-	pub fn allocate(&self, wrench: Wrench<F>, bidirectional_thrust: bool) -> [F; NUM_THRUSTERS] {
-		let mut reverse_allowed = [false; NUM_THRUSTERS];
-		for (i, thruster) in self.thrusters.iter().enumerate() {
-			reverse_allowed[i] = bidirectional_thrust || thruster.bidirectional();
-		}
-		self.allocator.allocate(wrench, reverse_allowed)
+	pub fn max_wrench(&self) -> &Wrench<F> {
+		self.allocator.max_wrench()
 	}
 
-	pub fn set_thrust_fractions(&mut self, fractions: &[F; NUM_THRUSTERS]) {
-		for (thruster, &fraction) in self.thrusters.iter_mut().zip(fractions.iter()) {
-			thruster.set_thrust_fraction(fraction);
+	pub fn allocate(&self, wrench: Wrench<F>) -> [F; NUM_THRUSTERS] {
+		self.allocator.allocate(wrench)
+	}
+
+	pub fn set_forces(&mut self, forces: &[F; NUM_THRUSTERS]) {
+		for (thruster, &force) in self.thrusters.iter_mut().zip(forces.iter()) {
+			thruster.set_force(force);
 		}
 	}
 

@@ -13,8 +13,6 @@ pub struct ThrusterConfig {
 	pub id: i8,
 	pub gpio_pin: u8,
 	pub placement: Placement,
-	#[serde(default)]
-	pub bidirectional: bool,
 	pub max_force: Option<MaxForce>,
 }
 

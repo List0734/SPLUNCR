@@ -68,28 +68,28 @@ id = 5
 gpio_pin = 13
 placement.position = [ 0.33,  1.0,  0.0]
 placement.direction = [ 0.0,  0.0,  1.0]
-bidirectional = true
+
 
 [[propulsion.thrusters]]
 id = 6
 gpio_pin = 16
 placement.position = [-0.33,  1.0,  0.0]
 placement.direction = [ 0.0,  0.0,  1.0]
-bidirectional = true
+
 
 [[propulsion.thrusters]]
 id = 7
 gpio_pin = 17
 placement.position = [ 0.33, -1.0,  0.0]
 placement.direction = [ 0.0,  0.0,  1.0]
-bidirectional = true
+
 
 [[propulsion.thrusters]]
 id = 8
 gpio_pin = 18
 placement.position = [-0.33, -1.0,  0.0]
 placement.direction = [ 0.0,  0.0,  1.0]
-bidirectional = true
+
 
 [propulsion.regulator.velocity.linear]
 surge = { kp = 1.0, ki = 0.0, kd = 0.1 }

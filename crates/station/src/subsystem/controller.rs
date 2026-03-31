@@ -4,18 +4,15 @@ use nalgebra::Vector3;
 
 pub struct ControllerInput {
 	pub wrench: Wrench<f32>,
-	pub bidirectional_thrust: bool,
-	pub depth_hold: bool,
+	pub stabilized: bool,
 	pub auto_level: bool,
 }
 
 pub struct Controller {
 	gilrs: Gilrs,
 	active_gamepad: Option<GamepadId>,
-	bidirectional_thrust: bool,
-	bidirectional_thrust_prev: bool,
-	depth_hold: bool,
-	depth_hold_prev: bool,
+	stabilized: bool,
+	stabilized_prev: bool,
 }
 
 impl Controller {
@@ -25,10 +22,8 @@ impl Controller {
 		Self {
 			gilrs,
 			active_gamepad,
-			bidirectional_thrust: false,
-			bidirectional_thrust_prev: false,
-			depth_hold: false,
-			depth_hold_prev: false,
+			stabilized: false,
+			stabilized_prev: false,
 		}
 	}
 
@@ -42,8 +37,7 @@ impl Controller {
 		let Some(id) = self.active_gamepad else {
 			return ControllerInput {
 				wrench: Wrench::zero(),
-				bidirectional_thrust: self.bidirectional_thrust,
-				depth_hold: self.depth_hold,
+				stabilized: self.stabilized,
 				auto_level: false,
 			};
 		};
@@ -53,8 +47,7 @@ impl Controller {
 			self.active_gamepad = None;
 			return ControllerInput {
 				wrench: Wrench::zero(),
-				bidirectional_thrust: self.bidirectional_thrust,
-				depth_hold: self.depth_hold,
+				stabilized: self.stabilized,
 				auto_level: false,
 			};
 		}
@@ -66,17 +59,11 @@ impl Controller {
 
 		let btn = |b: Button| -> f32 { if gamepad.is_pressed(b) { 1.0 } else { 0.0 } };
 
-		let bidirectional_pressed = gamepad.is_pressed(Button::DPadUp);
-		if bidirectional_pressed && !self.bidirectional_thrust_prev {
-			self.bidirectional_thrust = !self.bidirectional_thrust;
+		let stabilized_pressed = gamepad.is_pressed(Button::DPadDown);
+		if stabilized_pressed && !self.stabilized_prev {
+			self.stabilized = !self.stabilized;
 		}
-		self.bidirectional_thrust_prev = bidirectional_pressed;
-
-		let depth_hold_pressed = gamepad.is_pressed(Button::DPadDown);
-		if depth_hold_pressed && !self.depth_hold_prev {
-			self.depth_hold = !self.depth_hold;
-		}
-		self.depth_hold_prev = depth_hold_pressed;
+		self.stabilized_prev = stabilized_pressed;
 
 		let wrench = Wrench {
 			force: Vector3::new(
@@ -93,8 +80,7 @@ impl Controller {
 
 		ControllerInput {
 			wrench,
-			bidirectional_thrust: self.bidirectional_thrust,
-			depth_hold: self.depth_hold,
+			stabilized: self.stabilized,
 			auto_level: gamepad.is_pressed(Button::South),
 		}
 	}

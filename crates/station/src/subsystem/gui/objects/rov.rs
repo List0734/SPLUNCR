@@ -56,11 +56,13 @@ impl RovObject {
 
     pub fn update(&mut self, robot: &RobotCondition) {
         let output = &robot.state.action.propulsion.thruster.coast.output;
-        for (node, &thrust) in self.thrust_nodes.iter_mut().zip(output.iter()) {
-            let t = thrust.abs().clamp(0.0, 1.0);
+        let thrusters = &robot.config.propulsion.thrusters;
+        for ((node, &force), thruster) in self.thrust_nodes.iter_mut().zip(output.iter()).zip(thrusters.iter()) {
+            let max = thruster.max_force.map(|max_force| if force >= 0.0 { max_force.forward } else { max_force.reverse }).unwrap_or(1.0);
+            let t = (force.abs() / max).clamp(0.0, 1.0);
             let s = THRUSTER_CONE_SIZE * t;
             node.set_local_scale(s, s, s);
-            if thrust >= 0.0 {
+            if force >= 0.0 {
                 node.set_local_translation(Translation3::new(0.0, s / 2.0, 0.0));
                 node.set_local_rotation(UnitQuaternion::identity());
             } else {

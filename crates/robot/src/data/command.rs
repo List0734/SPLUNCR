@@ -8,7 +8,6 @@ use crate::platform::F;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct OperatorCommand {
 	pub propulsion: PropulsionCommand,
-	pub bidirectional_thrust: bool,
 	pub auto_level: bool,
 }
 
@@ -16,7 +15,6 @@ impl Default for OperatorCommand {
 	fn default() -> Self {
 		Self {
 			propulsion: PropulsionCommand::OpenLoop(Wrench::zero()),
-			bidirectional_thrust: false,
 			auto_level: false,
 		}
 	}
@@ -26,11 +24,11 @@ impl Default for OperatorCommand {
 pub enum PropulsionCommand {
 	Velocity(Twist<F>),
 	OpenLoop(Wrench<F>),
-	DepthHold(DepthHoldCommand),
+	Stabilized(StabilizedCommand),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct DepthHoldCommand {
+pub struct StabilizedCommand {
 	pub wrench: Wrench<F>,
 	pub depth_rate: F,
 }

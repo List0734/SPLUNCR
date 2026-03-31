@@ -69,11 +69,14 @@ impl<M: Motor<F>> PropulsionTask<M> {
 		};
 
 		if emergency_stop {
-			self.propulsion.set_thrust_fractions(&[0.0; NUM_THRUSTERS]);
+			self.propulsion.set_forces(&[0.0; NUM_THRUSTERS]);
 			return;
 		}
 
 		let measured_twist = odometry.twist;
+		let rotation = odometry.pose.rotation;
+		let inv_rotation = rotation.inverse();
+		let max = self.propulsion.max_wrench();
 
 		let wrench = match command {
 			PropulsionCommand::Velocity(setpoint) => {
@@ -90,17 +93,29 @@ impl<M: Motor<F>> PropulsionTask<M> {
 				};
 				Wrench { force: output.linear, torque: output.angular }
 			}
-			PropulsionCommand::OpenLoop(wrench) => wrench,
-			PropulsionCommand::DepthHold(depth_hold) => {
-				let rotation = odometry.pose.rotation;
-				let world_vel = rotation * measured_twist.linear;
-				let measured_depth_rate = world_vel.z as F;
-				let heave_force = self.regulator.depth_hold.update(depth_hold.depth_rate, measured_depth_rate, dt);
-				let world_force = nalgebra::Vector3::new(0.0, 0.0, heave_force as f64);
-				let body_heave = (rotation.inverse() * world_force).cast::<F>();
+			PropulsionCommand::OpenLoop(joystick) => {
 				Wrench {
-					force: nalgebra::Vector3::new(depth_hold.wrench.force.x, depth_hold.wrench.force.y, 0.0) + body_heave,
-					torque: depth_hold.wrench.torque,
+					force: joystick.force.component_mul(&max.force),
+					torque: joystick.torque.component_mul(&max.torque),
+				}
+			}
+			PropulsionCommand::Stabilized(cmd) => {
+				let (_, _, yaw) = rotation.euler_angles();
+				let yaw_rotation = nalgebra::UnitQuaternion::from_euler_angles(0.0, 0.0, yaw);
+				let body_force = nalgebra::Vector3::new(
+					cmd.wrench.force.x * max.force.x,
+					cmd.wrench.force.y * max.force.y,
+					0.0,
+				);
+				let mut world_force = yaw_rotation * body_force.cast::<f64>();
+
+				let world_vel = rotation * measured_twist.linear;
+				let heave_force = self.regulator.depth_hold.update(cmd.depth_rate, world_vel.z as F, dt);
+				world_force.z = heave_force as f64;
+
+				Wrench {
+					force: (inv_rotation * world_force).cast(),
+					torque: cmd.wrench.torque.component_mul(&max.torque),
 				}
 			}
 		};
@@ -116,9 +131,9 @@ impl<M: Motor<F>> PropulsionTask<M> {
 			wrench
 		};
 
-		let commanded = self.propulsion.allocate(wrench, operator_command.bidirectional_thrust);
+		let commanded = self.propulsion.allocate(wrench);
 		let outputs = self.regulator.thruster.update(&commanded, dt);
-		self.propulsion.set_thrust_fractions(&outputs);
+		self.propulsion.set_forces(&outputs);
 
 		{
 			let mut state = self.context.state.write().unwrap();

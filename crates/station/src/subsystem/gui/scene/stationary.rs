@@ -1,26 +1,25 @@
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
-use egui::{Context, ColorImage, TextureHandle, TextureOptions};
+use egui::Context;
 use kiss3d::{camera::ArcBall, window::Window};
 use nalgebra::{Point3, Vector3};
 use robot::data::condition::RobotCondition;
 use crate::data::video::VideoFrame;
 
 use super::super::objects::{GridObject, RovObject};
-use super::super::screens::{config_screen, state_screen, video_screen};
+use super::super::screens::{attitude_indicator, data_panel, TreeView, VideoOverlay};
 use super::{Scene, SceneTransition};
 
 pub struct StationaryScene {
     camera: ArcBall,
     rov: RovObject,
     grid: GridObject,
-    video_texture: Option<TextureHandle>,
-    frame_count: u32,
-    fps_timer: Instant,
-    fps: f32,
-    latency_ms: f32,
+    video: VideoOverlay,
     last_frame: Instant,
+    show_camera: bool,
+    show_side_panel: bool,
+    selected_tree: TreeView,
 }
 
 impl StationaryScene {
@@ -37,13 +36,48 @@ impl StationaryScene {
             camera,
             rov: RovObject::new(),
             grid: GridObject::new(4.0, 6),
-            video_texture: None,
-            frame_count: 0,
-            fps_timer: Instant::now(),
-            fps: 0.0,
-            latency_ms: 0.0,
+            video: VideoOverlay::new(),
             last_frame: Instant::now(),
+            show_camera: true,
+            show_side_panel: false,
+            selected_tree: TreeView::State,
         }
+    }
+
+    fn draw_toolbar(&mut self, ctx: &Context) {
+        let avail = ctx.available_rect();
+        egui::Area::new(egui::Id::new("toolbar"))
+            .fixed_pos(egui::pos2(avail.right() - 160.0, avail.top() + 10.0))
+            .order(egui::Order::Foreground)
+            .show(ctx, |ui| {
+                egui::Frame::popup(ui.style()).show(ui, |ui| {
+                    ui.horizontal(|ui| {
+                        let cam_label = if self.show_camera { "Cam ON" } else { "Cam OFF" };
+                        if ui.button(cam_label).clicked() {
+                            self.show_camera = !self.show_camera;
+                        }
+                        let panel_label = if self.show_side_panel { "Close Panel" } else { "Open Panel" };
+                        if ui.button(panel_label).clicked() {
+                            self.show_side_panel = !self.show_side_panel;
+                        }
+                    });
+                });
+            });
+    }
+
+    fn draw_attitude_indicator(&self, ctx: &Context, robot: &RobotCondition) {
+        let pose = &robot.state.perception.navigation.odometry.pose;
+        let (roll, pitch, yaw) = pose.rotation.euler_angles();
+        let depth = pose.translation.z;
+        let heading = -yaw.to_degrees();
+
+        let avail = ctx.available_rect();
+        egui::Area::new(egui::Id::new("attitude_indicator"))
+            .fixed_pos(egui::pos2(avail.right() - 230.0, avail.bottom() - 220.0))
+            .order(egui::Order::Foreground)
+            .show(ctx, |ui| {
+                attitude_indicator(ui, 180.0, -roll.to_degrees(), pitch.to_degrees(), depth, heading);
+            });
     }
 }
 
@@ -53,56 +87,11 @@ impl Scene for StationaryScene {
     }
 
     fn update_ui(&mut self, ctx: &Context, robot: &RobotCondition, video: &Arc<Mutex<Option<VideoFrame>>>) -> SceneTransition {
-        if let Some(frame) = video.lock().unwrap().take() {
-            self.frame_count += 1;
-            let elapsed = self.fps_timer.elapsed().as_secs_f32();
-            if elapsed >= 1.0 {
-                self.fps = self.frame_count as f32 / elapsed;
-                self.frame_count = 0;
-                self.fps_timer = Instant::now();
-            }
-
-            self.latency_ms = frame.latency_ms;
-
-            let image = ColorImage::from_rgba_unmultiplied(
-                [frame.width as usize, frame.height as usize],
-                &frame.pixels,
-            );
-
-            match &mut self.video_texture {
-                Some(tex) => tex.set(image, TextureOptions::LINEAR),
-                None => {
-                    self.video_texture = Some(ctx.load_texture("video_feed", image, TextureOptions::LINEAR));
-                }
-            }
-        }
-
-        if let Some(tex) = &self.video_texture {
-            egui::Window::new("Camera Feed")
-                .collapsible(true)
-                .resizable(true)
-                .max_size(ctx.available_rect().size())
-                .show(ctx, |ui| {
-                    video_screen(ui, tex, self.fps, self.latency_ms);
-                });
-        }
-
-        egui::Window::new("Robot State")
-            .collapsible(true)
-            .resizable(true)
-            .max_size(ctx.available_rect().size())
-            .show(ctx, |ui| {
-                state_screen(ui, &robot.state);
-        });
-
-        egui::Window::new("Robot Config")
-            .collapsible(true)
-            .resizable(true)
-            .max_size(ctx.available_rect().size())
-            .show(ctx, |ui| {
-                config_screen(ui, &robot.config);
-        });
-
+        self.video.process_frame(ctx, video);
+        data_panel(ctx, &mut self.show_side_panel, &mut self.selected_tree, robot);
+        self.draw_toolbar(ctx);
+        self.video.draw(ctx, self.show_camera);
+        self.draw_attitude_indicator(ctx, robot);
         SceneTransition::None
     }
 

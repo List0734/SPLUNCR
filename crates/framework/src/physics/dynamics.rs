@@ -31,3 +31,17 @@ where
         )
     }
 }
+
+impl<S> std::ops::Add for Wrench<S>
+where
+    S: RealField + Serialize + Copy,
+{
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self {
+        Self {
+            force: self.force + rhs.force,
+            torque: self.torque + rhs.torque,
+        }
+    }
+}

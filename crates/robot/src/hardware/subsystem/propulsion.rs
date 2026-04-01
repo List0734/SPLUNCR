@@ -1,6 +1,7 @@
 use framework::hardware::interface::Motor;
 use framework::physics::dynamics::Wrench;
 
+use crate::data::config::body::BodyConfig;
 use crate::data::config::propulsion::{PropulsionConfig, ThrusterConfig};
 use crate::data::config::Config;
 use crate::platform::{F, subsystem::propulsion::NUM_THRUSTERS};
@@ -9,23 +10,28 @@ mod thruster;
 pub use thruster::Thruster;
 mod allocator;
 pub use allocator::Allocator;
+mod compensation;
+pub use compensation::Compensation;
 
 pub struct PropulsionSubsystem<M: Motor<F>> {
 	thrusters: [Thruster<M>; NUM_THRUSTERS],
 	allocator: Allocator,
+	compensation: Compensation,
 }
 
 impl<M: Motor<F>> PropulsionSubsystem<M> {
-	pub fn new(config: PropulsionConfig, motors: [M; NUM_THRUSTERS]) -> Self {
+	pub fn new(propulsion_config: PropulsionConfig, body_config: &BodyConfig, motors: [M; NUM_THRUSTERS]) -> Self {
 		let mut motors_iter = motors.into_iter();
-		let thrusters = Self::resolve_thruster_configs(&config).map(|thruster_config| {
+		let thrusters = Self::resolve_thruster_configs(&propulsion_config).map(|thruster_config| {
 			Thruster::new(thruster_config, motors_iter.next().unwrap())
 		});
 		let allocator = Allocator::new(&thrusters);
+		let compensation = Compensation::new(body_config);
 
 		Self {
 			thrusters,
 			allocator,
+			compensation,
 		}
 	}
 
@@ -37,6 +43,10 @@ impl<M: Motor<F>> PropulsionSubsystem<M> {
 
 	pub fn max_wrench(&self) -> &Wrench<F> {
 		self.allocator.max_wrench()
+	}
+
+	pub fn compensation(&self) -> &Compensation {
+		&self.compensation
 	}
 
 	pub fn allocate(&self, wrench: Wrench<F>) -> [F; NUM_THRUSTERS] {

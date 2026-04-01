@@ -43,6 +43,7 @@ impl Robot {
 		// Propulsion
 		let propulsion = PropulsionSubsystem::new(
 			config.propulsion.clone(),
+			&config.body,
 			peripherals.motors,
 		);
 		let propulsion_regulator = PropulsionRegulator::new(config.propulsion.regulator.clone());

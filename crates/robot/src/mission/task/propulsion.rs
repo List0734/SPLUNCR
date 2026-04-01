@@ -113,10 +113,12 @@ impl<M: Motor<F>> PropulsionTask<M> {
 				let heave_force = self.regulator.depth_hold.update(cmd.depth_rate, world_vel.z as F, dt);
 				world_force.z = heave_force as f64;
 
-				Wrench {
+				let wrench = Wrench {
 					force: (inv_rotation * world_force).cast(),
 					torque: cmd.wrench.torque.component_mul(&max.torque),
-				}
+				};
+				let compensation = self.propulsion.compensation().compute(&rotation);
+				wrench + compensation
 			}
 		};
 

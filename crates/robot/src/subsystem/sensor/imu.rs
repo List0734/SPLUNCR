@@ -43,11 +43,17 @@ where
 	}
 
 	pub fn read_acceleration(&mut self) -> Option<Vector3<F>> {
-		self.driver.read_acceleration().ok().map(|a| (a - self.accel_offset) * STANDARD_GRAVITY as F)
+		self.driver.read_acceleration().ok().map(|a| {
+			let v = a - self.accel_offset;
+			Vector3::new(v.y, v.x, -v.z) * STANDARD_GRAVITY as F
+		})
 	}
 
 	pub fn read_rotation(&mut self) -> Option<Vector3<F>> {
-		self.driver.read_rotation().ok().map(|r| r - self.gyro_offset)
+		self.driver.read_rotation().ok().map(|r| {
+			let v = r - self.gyro_offset;
+			Vector3::new(v.y, v.x, -v.z)
+		})
 	}
 }
 

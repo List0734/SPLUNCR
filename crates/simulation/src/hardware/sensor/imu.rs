@@ -29,13 +29,15 @@ impl Accelerometer<Vector3<f32>> for SimImu {
 		let gravity_world = Vector3::new(0.0, 0.0, -STANDARD_GRAVITY);
 		let specific_force_world = condition.state.body.acceleration - gravity_world;
 		let specific_force_body = condition.state.body.pose.rotation.inverse() * specific_force_world;
-		Ok((specific_force_body / STANDARD_GRAVITY).cast())
+		let v = (specific_force_body / STANDARD_GRAVITY).cast::<f32>();
+		Ok(Vector3::new(v.y, v.x, -v.z))
 	}
 }
 
 impl Gyroscope<Vector3<f32>> for SimImu {
 	fn read_rotation(&mut self) -> Result<Vector3<f32>, Self::Error> {
 		let condition = self.context.condition.read().unwrap();
-		Ok(condition.state.body.twist.angular.cast())
+		let v = condition.state.body.twist.angular.cast::<f32>();
+		Ok(Vector3::new(v.y, v.x, -v.z))
 	}
 }

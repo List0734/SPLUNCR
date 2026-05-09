@@ -41,6 +41,8 @@ impl Hal for SimHal {
 			config.vision.camera.width,
 			config.vision.camera.height,
 			config.vision.camera.framerate,
+			config.vision.camera.flip_vertical,
+			config.vision.camera.flip_horizontal,
 		);
 
 		let command_transport = TcpDriver::new(&config.communication.command.listen_address)

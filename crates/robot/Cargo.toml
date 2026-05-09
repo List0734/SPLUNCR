@@ -6,9 +6,10 @@ edition = "2024"
 [features]
 default = ["hardware"]
 hardware = ["rpi"]
-rpi = ["dep:rppal", "i2c", "camera", "network"]
+rpi = ["dep:rppal", "i2c", "picamera", "network"]
 i2c = ["dep:rppal"]
 camera = ["dep:v4l"]
+picamera = []
 network = []
 simulation = []
 

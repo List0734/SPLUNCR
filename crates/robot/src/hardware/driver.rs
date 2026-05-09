@@ -1,4 +1,4 @@
-#[cfg(feature = "camera")]
+#[cfg(any(feature = "camera", feature = "picamera"))]
 pub mod camera;
 
 #[cfg(feature = "rpi")]
@@ -22,7 +22,7 @@ pub struct RpiHal;
 #[cfg(feature = "rpi")]
 impl Hal for RpiHal {
 	type Motor = motor::ZmrEsc;
-	type Camera = camera::V4lCamera;
+	type Camera = camera::PiCamera;
 	type Imu = sensor::Mpu6500;
 	type AtmosphericSensor = sensor::Bmp280;
 	type AquaticSensor = sensor::Ms5837;
@@ -36,11 +36,13 @@ impl Hal for RpiHal {
 				motor::ZmrEsc::new(thruster.gpio_pin).expect("failed to initialize motor")
 			});
 
-		let camera = camera::V4lCamera::new(
+		let camera = camera::PiCamera::new(
 			&config.vision.camera.device,
 			config.vision.camera.width,
 			config.vision.camera.height,
 			config.vision.camera.framerate,
+			config.vision.camera.flip_vertical,
+			config.vision.camera.flip_horizontal,
 		);
 
 		let command_transport = socket::TcpDriver::new(&config.communication.command.listen_address)

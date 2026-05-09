@@ -94,8 +94,8 @@ impl VideoOverlay {
                         let placeholder = egui::Vec2::new(max_width, max_width * 0.75);
                         let (rect, _) = ui.allocate_exact_size(placeholder, Sense::hover());
                         ui.painter().text(
-                            rect.center(),
-                            Align2::CENTER_CENTER,
+                            rect.left_top(),
+                            Align2::LEFT_TOP,
                             "No Camera Feed",
                             FontId::proportional(16.0),
                             ui.visuals().text_color(),

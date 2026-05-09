@@ -67,13 +67,13 @@ impl Controller {
 
 		let wrench = Wrench {
 			force: Vector3::new(
+				-axis(Axis::LeftStickX),
 				-axis(Axis::LeftStickY),
-				axis(Axis::LeftStickX),
 				btn(Button::RightTrigger2) - btn(Button::LeftTrigger2),
 			),
 			torque: Vector3::new(
-				btn(Button::LeftTrigger) - btn(Button::RightTrigger),
 				axis(Axis::RightStickY),
+				btn(Button::LeftTrigger) - btn(Button::RightTrigger),
 				-axis(Axis::RightStickX),
 			),
 		};

@@ -24,7 +24,7 @@ pub struct StationaryScene {
 
 impl StationaryScene {
     pub fn new() -> Self {
-        let eye = Point3::new(-20.0, -2.0, 8.0);
+        let eye = Point3::new(-1.0, -0.4, 0.65);
         let at  = Point3::origin();
 
         let mut camera = ArcBall::new(eye, at);
@@ -35,7 +35,7 @@ impl StationaryScene {
         Self {
             camera,
             rov: RovObject::new(),
-            grid: GridObject::new(4.0, 6),
+            grid: GridObject::new(1.0, 6),
             video: VideoOverlay::new(),
             last_frame: Instant::now(),
             show_camera: true,

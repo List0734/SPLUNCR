@@ -7,10 +7,12 @@ use framework::hardware::interface::Motor;
 use crate::platform::F;
 
 const PERIOD: Duration = Duration::from_micros(20_000); // 50 Hz
-const NEUTRAL: Duration = Duration::from_micros(1480); // 7.4% duty cycle
-const MIN_PULSE: Duration = Duration::from_micros(1000); // 5% duty cycle, full reverse
-const MAX_PULSE: Duration = Duration::from_micros(2000); // 10% duty cycle, full forward
-const DEADBAND: F = 0.0125;
+const NEUTRAL: Duration = Duration::from_micros(1500); // 7.5% duty cycle
+const MIN_PULSE: Duration = Duration::from_micros(1450); // 5% duty cycle, full reverse
+const MAX_PULSE: Duration = Duration::from_micros(1550); // 10% duty cycle, full forward
+//const MIN_PULSE: Duration = Duration::from_micros(1000); // 5% duty cycle, full reverse
+//const MAX_PULSE: Duration = Duration::from_micros(2000); // 10% duty cycle, full forward
+const DEADBAND: F = 0.0;
 
 pub struct ZmrEsc {
     pin: OutputPin,

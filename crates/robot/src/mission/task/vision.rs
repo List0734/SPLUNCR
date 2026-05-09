@@ -2,7 +2,7 @@ use std::sync::atomic::Ordering;
 
 use framework::hardware::interface::{Camera, Datagram};
 
-use crate::hardware::subsystem::VisionSubsystem;
+use crate::subsystem::VisionSubsystem;
 use crate::mission::context::TaskContext;
 
 pub struct VisionTask<C: Camera, D: Datagram> {

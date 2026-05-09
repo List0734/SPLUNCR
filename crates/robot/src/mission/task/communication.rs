@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 use framework::hardware::interface::{Stream, Datagram};
 
 use crate::data::command::OperatorCommand;
-use crate::hardware::subsystem::CommunicationSubsystem;
+use crate::subsystem::CommunicationSubsystem;
 use crate::mission::context::TaskContext;
 
 pub struct CommunicationTask<C: Stream, T: Datagram> {

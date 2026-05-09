@@ -7,7 +7,7 @@ use crate::data::command::OperatorCommand;
 use crate::data::config::RobotConfig;
 use crate::data::state::RobotState;
 use crate::hardware::interface::Hal;
-use crate::hardware::subsystem::{CommunicationSubsystem, Imu, PropulsionSubsystem, VisionSubsystem};
+use crate::subsystem::{CommunicationSubsystem, Imu, PropulsionSubsystem, VisionSubsystem};
 use crate::mission::Mission;
 use crate::mission::context::TaskContext;
 use crate::mission::task::communication::CommunicationTask;

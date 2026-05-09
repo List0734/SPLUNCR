@@ -10,7 +10,7 @@ use crate::control::regulator::PropulsionRegulator;
 use crate::data::state::action::propulsion::velocity::VelocityRegulatorState;
 use crate::data::state::action::propulsion::thruster::coast::CoastRegulatorState;
 use crate::data::command::PropulsionCommand;
-use crate::hardware::subsystem::PropulsionSubsystem;
+use crate::subsystem::PropulsionSubsystem;
 use crate::mission::context::TaskContext;
 use crate::platform::{F, subsystem::propulsion::NUM_THRUSTERS};
 
@@ -109,8 +109,7 @@ impl<M: Motor<F>> PropulsionTask<M> {
 				);
 				let mut world_force = yaw_rotation * body_force.cast::<f64>();
 
-				let world_vel = rotation * measured_twist.linear;
-				let heave_force = self.regulator.depth_hold.update(cmd.depth_rate, world_vel.z as F, dt);
+				let heave_force = self.regulator.depth_hold.update(cmd.depth_rate, measured_twist.linear.z as F, dt);
 				world_force.z = heave_force as f64;
 
 				let wrench = Wrench {

@@ -4,7 +4,7 @@ use framework::physics::dynamics::Wrench;
 use framework::hardware::interface::Motor;
 
 use crate::data::config::propulsion::MaxForce;
-use crate::{hardware::subsystem::propulsion::Thruster, platform::{F, subsystem::propulsion::NUM_THRUSTERS}};
+use crate::{subsystem::propulsion::Thruster, platform::{F, subsystem::propulsion::NUM_THRUSTERS}};
 
 // 6 x N allocation matrix
 type AllocationMatrix = SMatrix<F, 6, NUM_THRUSTERS>;

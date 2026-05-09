@@ -11,7 +11,7 @@ use crate::control::estimator::{Attitude, HeaveEstimator};
 use crate::data::state::perception::aquatic::AquaticState;
 use crate::data::state::perception::atmospheric::AtmosphericState;
 use crate::data::state::perception::navigation::odometry::OdometryState;
-use crate::hardware::subsystem::Imu;
+use crate::subsystem::Imu;
 use crate::mission::context::TaskContext;
 use crate::platform::Fp;
 
